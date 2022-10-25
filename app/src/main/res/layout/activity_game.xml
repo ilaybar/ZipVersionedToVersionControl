@@ -4,55 +4,257 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:layout_weight="1"
+    android:background="@drawable/unobackground"
     android:orientation="vertical"
     tools:context=".GameActivity">
 
-    <LinearLayout
+    <TextView
+        android:id="@+id/textView51"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:orientation="horizontal"></LinearLayout>
+        android:layout_weight="0.25" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="70sp"
+        android:layout_weight="0.1"
+        android:orientation="horizontal">
+
+        <ImageView
+            android:id="@+id/imageView4"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            app:srcCompat="@drawable/uno_back_of_card" />
+
+        <ImageView
+            android:id="@+id/imageView5"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            app:srcCompat="@drawable/uno_back_of_card" />
+
+        <ImageView
+            android:id="@+id/imageView9"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            app:srcCompat="@drawable/uno_back_of_card" />
+
+        <ImageView
+            android:id="@+id/imageView6"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            app:srcCompat="@drawable/uno_back_of_card" />
+
+        <ImageView
+            android:id="@+id/imageView7"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            app:srcCompat="@drawable/uno_back_of_card" />
+
+        <ImageView
+            android:id="@+id/imageView8"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            app:srcCompat="@drawable/uno_back_of_card" />
+
+        <ImageView
+            android:id="@+id/imageView10"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            app:srcCompat="@drawable/uno_back_of_card" />
+    </LinearLayout>
 
     <TextView
         android:id="@+id/txtInstructions"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_weight="1"
+        android:layout_weight="0.1"
+        android:fontFamily="@font/bubble_font"
         android:text="Enemy Cards"
         android:textAlignment="center"
+        android:textColor="@color/white"
+        android:textColorHint="@color/white"
         android:textSize="30sp" />
 
     <TextView
         android:id="@+id/txtGameMode"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:text="(Player) Turn"
+        android:layout_weight="0.1"
+        android:fontFamily="@font/bubble_font"
+        android:text="Player Turn"
         android:textAlignment="center"
-        android:textSize="30sp" />
-
-    <TextView
-        android:id="@+id/txtYour"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:text="Your Cards"
-        android:textAlignment="center"
+        android:textColor="@color/white"
         android:textSize="30sp" />
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:orientation="horizontal"></LinearLayout>
+        android:layout_weight="0.1"
+        android:orientation="horizontal">
 
-    <Button
-        android:id="@+id/btnRecords"
+        <ImageView
+            android:id="@+id/imageView"
+            android:layout_width="wrap_content"
+            android:layout_height="150sp"
+            android:layout_weight="0.25"
+            app:srcCompat="@drawable/uno_back_of_card" />
+
+        <ImageView
+            android:id="@+id/imageView21"
+            android:layout_width="wrap_content"
+            android:layout_height="150sp"
+            android:layout_weight="0.4"
+            app:srcCompat="@drawable/_1bluecard" />
+
+        <ImageView
+            android:id="@+id/imageView2"
+            android:layout_width="wrap_content"
+            android:layout_height="150sp"
+            android:layout_weight="0.45"
+            app:srcCompat="@drawable/uno_button" />
+
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/txtYour"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_weight="0.25"
-        android:text="Save Game"
+        android:layout_weight="0.1"
+        android:fontFamily="@font/bubble_font"
+        android:text="Your Cards"
         android:textAlignment="center"
-        android:textSize="20sp" />
+        android:textColor="@color/white"
+        android:textColorHint="@color/white"
+        android:textSize="30sp" />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="0.1">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <ImageView
+                android:id="@+id/imageView26"
+                android:layout_width="wrap_content"
+                android:layout_height="70sp"
+                android:layout_weight="1"
+                app:srcCompat="@drawable/_3yellowcard" />
+
+            <ImageView
+                android:id="@+id/imageView31"
+                android:layout_width="wrap_content"
+                android:layout_height="70sp"
+                android:layout_weight="1"
+                app:srcCompat="@drawable/_2greencard" />
+
+            <ImageView
+                android:id="@+id/imageView32"
+                android:layout_width="wrap_content"
+                android:layout_height="70sp"
+                android:layout_weight="1"
+                app:srcCompat="@drawable/_1redcard" />
+
+            <ImageView
+                android:id="@+id/imageView29"
+                android:layout_width="wrap_content"
+                android:layout_height="70sp"
+                android:layout_weight="1"
+                app:srcCompat="@drawable/_5bluecard" />
+
+            <ImageView
+                android:id="@+id/imageView30"
+                android:layout_width="wrap_content"
+                android:layout_height="70sp"
+                android:layout_weight="1"
+                app:srcCompat="@drawable/_6bluecard" />
+
+            <ImageView
+                android:id="@+id/imageView27"
+                android:layout_width="wrap_content"
+                android:layout_height="70sp"
+                android:layout_weight="1"
+                app:srcCompat="@drawable/_3card" />
+
+            <ImageView
+                android:id="@+id/imageView28"
+                android:layout_width="wrap_content"
+                android:layout_height="70sp"
+                android:layout_weight="1"
+                app:srcCompat="@drawable/_4card" />
+        </LinearLayout>
+    </ScrollView>
+
+    <TextView
+        android:id="@+id/textView47"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="0.1" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="0.1"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/textView24"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.25" />
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/btnRecords"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="2.60"
+            android:background="@drawable/gradient_button"
+            android:fontFamily="@font/bubble_font"
+            android:text="Save Game"
+            android:textAlignment="center"
+            android:textColor="@color/white"
+            android:textSize="20sp" />
+
+        <TextView
+            android:id="@+id/textView22"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.25" />
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/button3"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="3"
+            android:background="@drawable/gradient_button"
+            android:fontFamily="@font/bubble_font"
+            android:text="use"
+            android:textAlignment="center"
+            android:textColor="@color/white"
+            android:textSize="20sp" />
+
+        <TextView
+            android:id="@+id/textView30"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.25" />
+
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/textView50"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="0.25" />
 
 </LinearLayout>

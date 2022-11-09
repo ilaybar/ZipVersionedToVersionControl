@@ -1,6 +1,6 @@
 package ilay.bar.uno;
 
-import static ilay.bar.uno.Utils.handleMainMenu;
+import static ilay.bar.uno.Utils2.handleMainMenu;
 
 import androidx.appcompat.app.AppCompatActivity;
 

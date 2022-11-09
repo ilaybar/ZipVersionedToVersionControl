@@ -1,28 +1,30 @@
 package ilay.bar.uno;
 
-import android.app.Activity;
-import android.content.Intent;
-import android.view.MenuItem;
-import android.widget.Toast;
+import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 
-public class Utils {
+// class is abstract since it only contains static methods
+public abstract class Utils
+{
+    public static final String imgDir = "/images";
 
-    static boolean handleMainMenu(MenuItem item, Activity activity)
+
+    public static int string2drawbleId(Context context, String drawableName)
     {
-        int resID = item.getItemId();
-        switch(resID){
-            case R.id.item1:
-                Intent settings = new Intent(activity, SettingsActivity.class);
-                settings.putExtra("key", ""); //Optional parameters
-                activity.startActivity(settings);
-                return true;
-            case R.id.item2:
-                Intent instructions = new Intent(activity, InstructionsActivity.class);
-                instructions.putExtra("key", ""); //Optional parameters
-                activity.startActivity(instructions);
-                return true;
-        }
-        return false;
+        int drawableId =
+                context.getResources().getIdentifier(
+                        drawableName, "drawable",
+                        context.getPackageName());
+        return drawableId;
     }
+
+    public static Bitmap stringDrawableBitmap(Context context, String drawableName)
+    {
+        int id = string2drawbleId(context, drawableName);
+        Bitmap bmp = BitmapFactory.decodeResource(context.getResources(), id);
+        return bmp;
+    }
+
 
 }

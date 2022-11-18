@@ -73,15 +73,13 @@ public class MyArrayAdapter extends ArrayAdapter<Player>
 
 	private void handleArray(int position)
 	{
-		tvFirstName.setText(valuesArr[position].getFirstName());
-		tvLastName.setText(valuesArr[position].getLastName());
+		tvFirstName.setText(valuesArr[position].getName());
 		imgPhoto.setImageResource(valuesArr[position].getDrawableId());
 	}
 	
 	private void handleArrayList(int position)
 	{
-		tvFirstName.setText(valuesList.get(position).getFirstName());
-		tvLastName.setText(valuesList.get(position).getLastName());
+		tvFirstName.setText(valuesList.get(position).getName());
 		// imgPhoto.setImageResource(valuesList.get(position).getDrawableId());
 	}
 

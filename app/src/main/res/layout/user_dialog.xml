@@ -4,7 +4,8 @@
     android:layout_width="300sp"
     android:layout_height="500sp"
     android:background="@drawable/unobackground"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    android:textAlignment="center">
 
     <TextView
         android:id="@+id/txtEmpty"
@@ -30,10 +31,11 @@
         android:layout_weight="0.5" />
 
     <Spinner
-        android:id="@+id/spinner"
+        android:id="@+id/spinner1"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_weight="1" />
+        android:layout_weight="1"
+        android:backgroundTint="@color/white" />
 
     <TextView
         android:id="@+id/txtEmpty7"
@@ -45,7 +47,8 @@
         android:id="@+id/spinner2"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_weight="1" />
+        android:layout_weight="1"
+        android:backgroundTint="@color/white" />
 
     <TextView
         android:id="@+id/textView58"

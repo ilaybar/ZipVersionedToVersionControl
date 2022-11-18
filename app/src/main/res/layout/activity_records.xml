@@ -29,10 +29,10 @@
         android:id="@+id/tvResult"
         android:layout_width="match_parent"
         android:layout_height="60dp"
-        android:textColor="@color/white"
         android:fontFamily="@font/bubble_font"
-        android:text="TextView"
+        android:text="Name"
         android:textAlignment="center"
+        android:textColor="@color/white"
         android:textSize="30sp" />
 
     <TextView
@@ -54,16 +54,22 @@
             android:id="@+id/textView3"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
+            android:layout_weight="0.75"
             android:fontFamily="@font/bubble_font"
-            android:text="          Sort By:"
+            android:text="         Sort By:"
             android:textAlignment="textStart"
             android:textColor="@color/white"
             android:textSize="30sp" />
 
+        <TextView
+            android:id="@+id/textView12"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1.5" />
+
         <Spinner
             android:id="@+id/spinner3"
-            android:layout_width="wrap_content"
+            android:layout_width="75dp"
             android:layout_height="35dp"
             android:layout_weight="1"
             android:backgroundTint="@color/white"

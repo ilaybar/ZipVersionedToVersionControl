@@ -13,7 +13,7 @@
         android:id="@+id/textView51"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_weight="0.25" />
+        android:layout_weight="0.1" />
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -101,21 +101,21 @@
         android:orientation="horizontal">
 
         <ImageView
-            android:id="@+id/imageView"
+            android:id="@+id/imgPacket"
             android:layout_width="wrap_content"
             android:layout_height="150sp"
             android:layout_weight="0.25"
             app:srcCompat="@drawable/uno_back_of_card" />
 
         <ImageView
-            android:id="@+id/imageView21"
+            android:id="@+id/imgPile"
             android:layout_width="wrap_content"
             android:layout_height="150sp"
             android:layout_weight="0.4"
             app:srcCompat="@drawable/_1bluecard" />
 
         <ImageView
-            android:id="@+id/imageView2"
+            android:id="@+id/unoImage"
             android:layout_width="wrap_content"
             android:layout_height="150sp"
             android:layout_weight="0.45"
@@ -196,65 +196,9 @@
     </ScrollView>
 
     <TextView
-        android:id="@+id/textView47"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_weight="0.1" />
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_weight="0.1"
-        android:orientation="horizontal">
-
-        <TextView
-            android:id="@+id/textView24"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="0.25" />
-
-        <androidx.appcompat.widget.AppCompatButton
-            android:id="@+id/btnRecords"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="2.60"
-            android:background="@drawable/gradient_button"
-            android:fontFamily="@font/bubble_font"
-            android:text="Save Game"
-            android:textAlignment="center"
-            android:textColor="@color/white"
-            android:textSize="20sp" />
-
-        <TextView
-            android:id="@+id/textView22"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="0.25" />
-
-        <androidx.appcompat.widget.AppCompatButton
-            android:id="@+id/button3"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="3"
-            android:background="@drawable/gradient_button"
-            android:fontFamily="@font/bubble_font"
-            android:text="use"
-            android:textAlignment="center"
-            android:textColor="@color/white"
-            android:textSize="20sp" />
-
-        <TextView
-            android:id="@+id/textView30"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="0.25" />
-
-    </LinearLayout>
-
-    <TextView
         android:id="@+id/textView50"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_weight="0.25" />
+        android:layout_weight="0.1" />
 
 </LinearLayout>

@@ -4,6 +4,7 @@ import static ilay.bar.uno.Utils2.handleMainMenu;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -31,12 +32,12 @@ public class RecordsActivity extends Activity
     private void initData()
     {
         players = new ArrayList<Player>();
-        players.add(new Player("Paul", "McCartney", this));
-        players.add(new Player("John", "Lennon", this));
-        players.add(new Player("George", "Harrison", this));
-        players.add(new Player("Ringo", "Starr", this));
+        players.add(new Player("Paul", this));
+        players.add(new Player("John", this));
+        players.add(new Player("George", this));
+        players.add(new Player("Ringo", this));
 
-		/*
+        /*
 		Bitmap photo = Utils.stringDrawableBitmap(this, "paul");
 		items2.add(new Person("Paul", "McCartney", photo));
 		 */
@@ -93,7 +94,7 @@ public class RecordsActivity extends Activity
         Toast.makeText(getApplicationContext(),
                 "del: " + players.get(position),
                 Toast.LENGTH_LONG).show();
-        players.remove(position);
+        // players.remove(position);
         adapter.notifyDataSetChanged(); // Update the ListView + GridView
         // spinnerAdapter2.notifyDataSetChanged(); // Update the Spinner
         return true;  // i.e. all ended well

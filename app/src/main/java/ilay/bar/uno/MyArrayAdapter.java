@@ -22,7 +22,6 @@ public class MyArrayAdapter extends ArrayAdapter<Player>
 	private final ArrayList<Player> valuesList;
 
 	TextView tvFirstName;
-	TextView tvLastName;
 	ImageView imgPhoto;
 
 	// Constructor for an array
@@ -40,13 +39,13 @@ public class MyArrayAdapter extends ArrayAdapter<Player>
 		this.valuesList = null;
 	}
 
-	// Constructor for an ArrrayList
+	// Constructor for an ArrayList
 	public MyArrayAdapter(Context _context, ArrayList<Player> _valuesList)
 	{
 		super(_context, R.layout.person_adapter, _valuesList);
 		this.context = _context;
 		this.valuesList = _valuesList;
-		valuesArr = null;
+		this.valuesArr = null;
 	}
 
 
@@ -59,8 +58,7 @@ public class MyArrayAdapter extends ArrayAdapter<Player>
 		View rowView = inflater.inflate(R.layout.person_adapter, parent, false);
 
 		tvFirstName = (TextView) rowView.findViewById(R.id.tvFirstName);
-		tvLastName = (TextView) rowView.findViewById(R.id.tvLastName);
-		// imgPhoto = (ImageView) rowView.findViewById(R.id.imgPhoto);
+		imgPhoto = (ImageView) rowView.findViewById(R.id.imgPhoto);
 
 		if (valuesList == null)
 			handleArray(position);
@@ -80,7 +78,7 @@ public class MyArrayAdapter extends ArrayAdapter<Player>
 	private void handleArrayList(int position)
 	{
 		tvFirstName.setText(valuesList.get(position).getName());
-		// imgPhoto.setImageResource(valuesList.get(position).getDrawableId());
+		imgPhoto.setImageResource(valuesList.get(position).getDrawableId());
 	}
 
 }

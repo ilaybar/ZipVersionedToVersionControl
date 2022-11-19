@@ -10,22 +10,26 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 public class GameActivity extends AppCompatActivity {
 
     Intent intent;
-    String GameMode, Player1Name, Player2Name;
+    String gameMode, player1Name, player2Name;
+    ImageView unoImage;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_game);
         intent = new Intent();
-        GameMode = intent.getStringExtra("GameMode");
-        Player1Name = intent.getStringExtra("Player1Name");
-        Player2Name = intent.getStringExtra("Player2Name");
+        gameMode = intent.getStringExtra("GameMode");
+        player1Name = intent.getStringExtra("Player1Name");
+        player2Name = intent.getStringExtra("Player2Name");
+        unoImage = findViewById(R.id.unoImage);
+        unoImage.setEnabled(false);
     }
 
     @Override
@@ -46,6 +50,8 @@ public class GameActivity extends AppCompatActivity {
             case R.id.item4:
                 showPlusFourDialog();
                 break;
+            case R.id.item5:
+                Toast.makeText(getApplicationContext(), "Saved", Toast.LENGTH_LONG).show();
         }
         return true;
     }

@@ -29,7 +29,6 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     Button moveToGameActivity;
     Spinner spinnerPlayers1, spinnerPlayers2;
 
-    MyArrayAdapter adapter;
     ArrayAdapter<Player> spinnerAdapter;
 
     ArrayList<Player> players;

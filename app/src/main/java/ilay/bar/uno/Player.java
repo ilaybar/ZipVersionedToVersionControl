@@ -8,9 +8,9 @@ public class Player
 	// private Bitmap photo;
 	private int drawableId;
 
-	public Player(String _firstName, int _drawableId)
+	public Player(String _name, int _drawableId)
 	{
-		this.name = _firstName;
+		this.name = _name;
 		this.drawableId = _drawableId;
 	}
 

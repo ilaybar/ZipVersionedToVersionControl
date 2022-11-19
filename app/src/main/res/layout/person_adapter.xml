@@ -6,11 +6,10 @@
     android:layout_height="wrap_content">
 
     <ImageView
-        android:id="@+id/imageView11"
+        android:id="@+id/imgPhoto"
         android:layout_width="100dp"
         android:layout_height="100dp"
         android:adjustViewBounds="false"
-        android:contentDescription="@string/todo"
         android:scaleType="fitCenter"
         app:srcCompat="@drawable/user_icon" />
 
@@ -27,9 +26,15 @@
             android:orientation="vertical">
 
             <TextView
+                android:id="@+id/textView16"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1" />
+
+            <TextView
                 android:id="@+id/tvFirstName"
                 android:layout_width="wrap_content"
-                android:layout_height="match_parent"
+                android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:fontFamily="@font/bubble_font"
                 android:text="First Name"
@@ -38,15 +43,11 @@
                 android:textSize="26sp" />
 
             <TextView
-                android:id="@+id/tvLastName"
-                android:layout_width="wrap_content"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:fontFamily="@font/bubble_font"
-                android:text="Last Name"
-                android:textAppearance="?android:attr/textAppearanceLarge"
-                android:textColor="#EF6C00"
-                android:textSize="26sp" />
+                android:id="@+id/textView17"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1" />
+
         </LinearLayout>
 
         <LinearLayout

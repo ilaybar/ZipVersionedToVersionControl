@@ -5,7 +5,6 @@ import static ilay.bar.uno.Utils2.handleMainMenu;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.app.Dialog;
-import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.Menu;
@@ -21,6 +20,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
+
+import ilay.bar.uno.Controller.GameManager;
 
 public class MainActivity extends AppCompatActivity implements AdapterView.OnItemSelectedListener {
 

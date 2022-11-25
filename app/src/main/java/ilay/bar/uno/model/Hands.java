@@ -1,4 +1,4 @@
-package ilay.bar.uno.model;
+package ilay.bar.uno.Model;
 
 import java.util.ArrayList;
 

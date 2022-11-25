@@ -21,12 +21,11 @@ import android.widget.Toast;
 
 import java.util.ArrayList;
 
-import ilay.bar.uno.Controller.GameManager;
+import ilay.bar.uno.View.GameActivity;
 
 public class MainActivity extends AppCompatActivity implements AdapterView.OnItemSelectedListener {
 
     Intent intent;
-    GameManager gm;
     Button moveToGameActivity;
     Spinner spinnerPlayers1, spinnerPlayers2;
 
@@ -53,7 +52,6 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        gm = new GameManager();
         moveToGameActivity = findViewById(R.id.btnMoveToGameActivity);
     }
 

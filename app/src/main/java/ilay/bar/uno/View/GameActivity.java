@@ -1,5 +1,7 @@
-package ilay.bar.uno;
+package ilay.bar.uno.View;
 
+import androidx.annotation.Dimension;
+import androidx.annotation.DrawableRes;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -18,10 +20,14 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
-import java.util.Collections;
 
+import ilay.bar.uno.CardAdapter;
 import ilay.bar.uno.Controller.GameManager;
-import ilay.bar.uno.model.Card;
+import ilay.bar.uno.EndActivity;
+import ilay.bar.uno.Model.Card;
+import ilay.bar.uno.R;
+import ilay.bar.uno.RecyclerItemClickListener;
+import ilay.bar.uno.Utils;
 
 public class GameActivity extends AppCompatActivity {
 
@@ -29,23 +35,27 @@ public class GameActivity extends AppCompatActivity {
 
     Intent intent;
     String gameMode, player1Name, player2Name;
-    ImageView unoImage;
+    ImageView unoImage, pileImg;
 
     // RecyclerView
     TextView tvSelected;
-    RecyclerView rclvPlayer1Cards, rclvPlayer2Cards;
-    CardAdapter cardAdapterPlayer1Cards, cardAdapterPlayer2Cards;
-    ArrayList<Card> deck, player1Cards, player2Cards;
+    RecyclerView rclvMyCards, rclvOpponentCards;
+    CardAdapter cardAdapterMyCards, cardAdapterOpponentCards;
+    ArrayList<Card> deck, myCards, opponentCards, pile;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_game);
 
-        gm = new GameManager();
+        pileImg = findViewById(R.id.imgPile);
+
+        gm = new GameManager(this);
+        gm.newGame();
         deck = gm.getDeck().deckToArrayList();
-        player1Cards = gm.getHands().getPlayer1Hand();
-        player2Cards = gm.getHands().getPlayer2Hand();
+        myCards = gm.getHands().getPlayer1Hand();
+        opponentCards = gm.getHands().getPlayer2Hand();
+        pile = gm.getPile().getPileArray();
 
         intent = new Intent();
         gameMode = intent.getStringExtra("GameMode");
@@ -58,20 +68,20 @@ public class GameActivity extends AppCompatActivity {
 
         ItemClickListener itemClickListener = new ItemClickListener();
 
-        cardAdapterPlayer1Cards = new CardAdapter(this, player1Cards);
-        rclvPlayer1Cards = (RecyclerView) findViewById(R.id.rclvMyCards);
-        rclvPlayer1Cards.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
-        rclvPlayer1Cards.setAdapter(cardAdapterPlayer1Cards);
+        cardAdapterMyCards = new CardAdapter(this, myCards);
+        rclvMyCards = (RecyclerView) findViewById(R.id.rclvMyCards);
+        rclvMyCards.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
+        rclvMyCards.setAdapter(cardAdapterMyCards);
 
-        cardAdapterPlayer2Cards = new CardAdapter(this, player2Cards);
-        rclvPlayer2Cards = (RecyclerView) findViewById(R.id.rclvEnemyCards);
-        rclvPlayer2Cards.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
-        rclvPlayer2Cards.setAdapter(cardAdapterPlayer2Cards);
+        cardAdapterOpponentCards = new CardAdapter(this, opponentCards);
+        rclvOpponentCards = (RecyclerView) findViewById(R.id.rclvEnemyCards);
+        rclvOpponentCards.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
+        rclvOpponentCards.setAdapter(cardAdapterOpponentCards);
 
-        RecyclerItemClickListener hListener1 = new RecyclerItemClickListener(this, rclvPlayer1Cards, itemClickListener);
-        rclvPlayer1Cards.addOnItemTouchListener(hListener1);
-        RecyclerItemClickListener hListener2 = new RecyclerItemClickListener(this, rclvPlayer1Cards, itemClickListener);
-        rclvPlayer2Cards.addOnItemTouchListener(hListener2);
+        RecyclerItemClickListener hListener1 = new RecyclerItemClickListener(this, rclvMyCards, itemClickListener);
+        rclvMyCards.addOnItemTouchListener(hListener1);
+        RecyclerItemClickListener hListener2 = new RecyclerItemClickListener(this, rclvMyCards, itemClickListener);
+        rclvOpponentCards.addOnItemTouchListener(hListener2);
     }
 
     private class ItemClickListener implements RecyclerItemClickListener.OnItemClickListener
@@ -79,15 +89,19 @@ public class GameActivity extends AppCompatActivity {
         @Override
         public void onItemClick(View view, int position)
         {
-            Toast.makeText(getApplicationContext(), "selected: " + deck.get(position), Toast.LENGTH_LONG).show();
-            tvSelected.setText(deck.get(position).toString());
+            Toast.makeText(getApplicationContext(), "selected: " + myCards.get(position), Toast.LENGTH_LONG).show();
+            // tvSelected.setText(myCards.get(position).toString());
         }
 
         @Override
         public void onLongItemClick(View view, int position)
         {
-            Toast.makeText(getApplicationContext(), "long click: " + deck.get(position) + " deck size: " + deck.size() , Toast.LENGTH_LONG).show();
+            // Toast.makeText(getApplicationContext(), "long click: " + deck.get(position) + " deck size: " + deck.size() , Toast.LENGTH_LONG).show();
         }
+    }
+
+    public void changePileImg(Card card){
+        pileImg.setImageResource(card.calcFaceDrawableId(this));
     }
 
     @Override
@@ -153,7 +167,7 @@ public class GameActivity extends AppCompatActivity {
         }
     }
 
-    private void showPlusFourDialog()
+    public void showPlusFourDialog()
     {
         // Toast.makeText(this, "Custom", Toast.LENGTH_LONG).show();
         final Dialog dialog = new Dialog(this);
@@ -173,7 +187,25 @@ public class GameActivity extends AppCompatActivity {
         dialog.show();
     }
 
-    private void showStartDialog()
+    public void showPlusTwoDialog()
+    {
+        // Toast.makeText(this, "Custom", Toast.LENGTH_LONG).show();
+        final Dialog dialog = new Dialog(this);
+        dialog.setContentView(R.layout.plus_two_dialog);
+
+        // set the custom dialog components - text, image and button
+        Button btnOk = dialog.findViewById(R.id.btnOk);
+        TextView tvTitle = dialog.findViewById(R.id.tvTitle);
+
+        tvTitle.setText("Player 1 Turn");
+
+        CustomDialogClickListener dcl = new CustomDialogClickListener(dialog);
+        btnOk.setOnClickListener(dcl);
+
+        dialog.show();
+    }
+
+    public void showStartDialog()
     {
         // Toast.makeText(this, "Custom", Toast.LENGTH_LONG).show();
         final Dialog dialog = new Dialog(this);
@@ -191,7 +223,7 @@ public class GameActivity extends AppCompatActivity {
         dialog.show();
     }
 
-    private void showContinueDialog()
+    public void showContinueDialog()
     {
         // Toast.makeText(this, "Custom", Toast.LENGTH_LONG).show();
         final Dialog dialog = new Dialog(this);

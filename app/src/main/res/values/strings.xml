@@ -1,4 +1,8 @@
 <resources>
     <string name="app_name">Uno</string>
     <string name="todo">TODO</string>
+    <string name="enemy_cards">Opponent Cards</string>
+    <string name="game_status">Game Status</string>
+    <string name="your_cards">Your Cards</string>
+    <string name="selected">Selected:</string>
 </resources>

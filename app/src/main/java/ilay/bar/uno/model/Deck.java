@@ -1,4 +1,4 @@
-package ilay.bar.uno.model;
+package ilay.bar.uno.Model;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -41,9 +41,14 @@ public class Deck {
         return hand;
     }
 
+
     // Remove First Card From Deck
     public Card removeFirst(){
         return deck.remove(0);
+    }
+
+    public void addCard(Card card){
+        deck.add(card);
     }
 
     public ArrayList<Card> deckToArrayList(){

@@ -11,7 +11,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.ArrayList;
 
-import ilay.bar.uno.model.Card;
+import ilay.bar.uno.Model.Card;
 
 // Source: https://www.freshbytelabs.com/2018/12/android-recyclerview-with-cardview.html
 public class CardAdapter extends RecyclerView.Adapter<CardAdapter.ViewHolder>

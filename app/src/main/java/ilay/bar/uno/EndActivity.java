@@ -11,6 +11,8 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 
+import ilay.bar.uno.View.GameActivity;
+
 public class EndActivity extends AppCompatActivity {
 
     Intent intent;

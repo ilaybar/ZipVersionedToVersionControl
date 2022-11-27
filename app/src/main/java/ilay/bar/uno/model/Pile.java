@@ -2,35 +2,34 @@ package ilay.bar.uno.Model;
 
 import java.util.ArrayList;
 
-public class Pile {
-
-    protected ArrayList<Card> pile;
-    // protected Card pileTop = getFirst();
-    // TODO: Think if i can use a pileTop variable that is always equal to the top
+public class Pile extends Hand{
 
     public Pile(){
-        this.pile = new ArrayList<Card>();
+        super();
     }
 
     public ArrayList<Card> getPileArray(){
-        return pile;
+        return super.cardsArray;
     }
 
     public Card getFirst(){
-        return pile.get(pileSize() - 1);
+        return super.cardsArray.get(pileSize() - 1);
     }
 
     public void addCard(Card card){
-        pile.add(card);
+        super.addCard(card);
     }
 
     public int pileSize(){
-        return pile.size();
+        return super.handSize();
     }
 
     public Card removeFirst(){
-        return pile.remove(pileSize() - 1);
+        return super.removeFirst();
     }
 
-
+    @Override
+    public String toString() {
+        return super.toString();
+    }
 }

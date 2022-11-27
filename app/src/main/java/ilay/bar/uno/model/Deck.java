@@ -3,55 +3,54 @@ package ilay.bar.uno.Model;
 import java.util.ArrayList;
 import java.util.Collections;
 
-public class Deck {
+public class Deck extends Hand{
 
-    protected ArrayList<Card> deck;
 
     public Deck(){
+        super();
         initData();
     }
 
     // Initialize Deck
     public void initData(){
-        deck = new ArrayList<Card>();
+        super.cardsArray = new ArrayList<Card>();
         for (int value = 0; value <=12; value++){
             for (Card.Colors color:Card.ColorValues){
                 if(color != Card.Colors.black){
-                    deck.add(new Card(color, value, true));
+                    super.addCard(new Card(color, value, true));
                 }
                 if(color != Card.Colors.black && value > 0){
-                    deck.add(new Card(color, value, true));
+                    super.addCard(new Card(color, value, true));
                 }
             }
         }
         for(int value = 13; value <=14; value++){
             for(int i = 0; i<=3; i++){
-                deck.add(new Card(Card.Colors.black, value, true));
+                super.addCard(new Card(Card.Colors.black, value, true));
             }
         }
-        Collections.shuffle(deck);
+        Collections.shuffle(super.cardsArray);
     }
 
     // Get 7 Cards Hand From Deck
     public ArrayList<Card> getUserCards(){
         ArrayList<Card> hand = new ArrayList<Card>();
         for(int i = 0; i<=6; i++){
-            hand.add(deck.remove(0));
+            hand.add(super.cardsArray.remove(0));
         }
         return hand;
     }
 
-
     // Remove First Card From Deck
     public Card removeFirst(){
-        return deck.remove(0);
+        return super.removeFirst();
     }
 
     public void addCard(Card card){
-        deck.add(card);
+        super.addCard(card);
     }
 
     public ArrayList<Card> deckToArrayList(){
-        return deck;
+        return super.cardsArray;
     }
 }

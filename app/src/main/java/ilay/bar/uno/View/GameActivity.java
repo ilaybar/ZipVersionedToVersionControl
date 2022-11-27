@@ -1,7 +1,5 @@
 package ilay.bar.uno.View;
 
-import androidx.annotation.Dimension;
-import androidx.annotation.DrawableRes;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -9,7 +7,6 @@ import androidx.recyclerview.widget.RecyclerView;
 import android.app.Dialog;
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -27,7 +24,6 @@ import ilay.bar.uno.EndActivity;
 import ilay.bar.uno.Model.Card;
 import ilay.bar.uno.R;
 import ilay.bar.uno.RecyclerItemClickListener;
-import ilay.bar.uno.Utils;
 
 public class GameActivity extends AppCompatActivity {
 
@@ -38,10 +34,10 @@ public class GameActivity extends AppCompatActivity {
     ImageView unoImage, pileImg;
 
     // RecyclerView
-    TextView tvSelected;
+    TextView tvSelected, gameStatus;
     RecyclerView rclvMyCards, rclvOpponentCards;
     CardAdapter cardAdapterMyCards, cardAdapterOpponentCards;
-    ArrayList<Card> deck, myCards, opponentCards, pile;
+    ArrayList<Card> deck, myCards, opponentCards, pile, temp;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,12 +45,12 @@ public class GameActivity extends AppCompatActivity {
         setContentView(R.layout.activity_game);
 
         pileImg = findViewById(R.id.imgPile);
+        gameStatus = findViewById(R.id.tvGameStatus);
 
         gm = new GameManager(this);
-        gm.newGame();
         deck = gm.getDeck().deckToArrayList();
-        myCards = gm.getHands().getPlayer1Hand();
-        opponentCards = gm.getHands().getPlayer2Hand();
+        myCards = gm.getPlayer1Hand().getCardsArray();
+        opponentCards = gm.getPlayer2Hand().getCardsArray();
         pile = gm.getPile().getPileArray();
 
         intent = new Intent();
@@ -80,8 +76,25 @@ public class GameActivity extends AppCompatActivity {
 
         RecyclerItemClickListener hListener1 = new RecyclerItemClickListener(this, rclvMyCards, itemClickListener);
         rclvMyCards.addOnItemTouchListener(hListener1);
-        RecyclerItemClickListener hListener2 = new RecyclerItemClickListener(this, rclvMyCards, itemClickListener);
-        rclvOpponentCards.addOnItemTouchListener(hListener2);
+
+        // rclvOpponentCards.addOnItemTouchListener(hListener2);
+
+        gm.newGame();
+    }
+
+    public void switchRecyclerViewsMain(String turn){
+        if(turn.equals("Player1")){
+            myCards = gm.getPlayer1Hand().getCardsArray();
+            opponentCards = gm.getPlayer2Hand().getCardsArray();
+            rclvMyCards.setAdapter(cardAdapterMyCards);
+            rclvOpponentCards.setAdapter(cardAdapterOpponentCards);
+        }
+        else{
+            myCards = gm.getPlayer2Hand().getCardsArray();
+            opponentCards = gm.getPlayer1Hand().getCardsArray();
+            rclvMyCards.setAdapter(cardAdapterOpponentCards);
+            rclvOpponentCards.setAdapter(cardAdapterMyCards);
+        }
     }
 
     private class ItemClickListener implements RecyclerItemClickListener.OnItemClickListener
@@ -104,6 +117,22 @@ public class GameActivity extends AppCompatActivity {
         pileImg.setImageResource(card.calcFaceDrawableId(this));
     }
 
+    public void setCardsNonClickable(){
+        rclvMyCards.setEnabled(false);
+    }
+
+    public void setCardsClickable(){
+        rclvMyCards.setEnabled(true);
+    }
+
+    public void setUnoButtonClickable(){
+        unoImage.setEnabled(true);
+    }
+
+    public void setGameStatusText(String str){
+        gameStatus.setText(str);
+    }
+
     @Override
     public boolean onOptionsItemSelected(MenuItem Item) {
         Intent myIntent = new Intent(this, EndActivity.class);
@@ -114,7 +143,7 @@ public class GameActivity extends AppCompatActivity {
                 startActivity(myIntent);
                 break;
             case R.id.item2:
-                showStartDialog();
+                showStartDialog("Player 1");
                 break;
             case R.id.item3:
                 showContinueDialog();
@@ -159,6 +188,22 @@ public class GameActivity extends AppCompatActivity {
                 reply = "Accept Turns";
             else if(id == R.id.btnContinueGame)
                 reply = "Continue Game";
+            else if(id == R.id.btnBlue){ // TODO: Remember that 'plus 4' card also changes the color, it means that I need to separate between 'change color' and 'plus 4'.
+                reply = "blue";
+                gm.changeColorOrPlusFour("blue", 14);
+            }
+            else if(id == R.id.btnRed){
+                reply = "red";
+                gm.changeColorOrPlusFour("red", 14);
+            }
+            else if(id == R.id.btnGreen){
+                reply = "green";
+                gm.changeColorOrPlusFour("green", 14);
+            }
+            else if(id == R.id.btnYellow){
+                reply = "yellow";
+                gm.changeColorOrPlusFour("yellow", 14);
+            }
             else
                 reply = "Empty";
             Toast.makeText(getApplicationContext(), reply, Toast.LENGTH_LONG).show();
@@ -187,7 +232,7 @@ public class GameActivity extends AppCompatActivity {
         dialog.show();
     }
 
-    public void showPlusTwoDialog()
+    public void showPlusTwoDialog(String str)
     {
         // Toast.makeText(this, "Custom", Toast.LENGTH_LONG).show();
         final Dialog dialog = new Dialog(this);
@@ -197,7 +242,7 @@ public class GameActivity extends AppCompatActivity {
         Button btnOk = dialog.findViewById(R.id.btnOk);
         TextView tvTitle = dialog.findViewById(R.id.tvTitle);
 
-        tvTitle.setText("Player 1 Turn");
+        tvTitle.setText(str + " Turn");
 
         CustomDialogClickListener dcl = new CustomDialogClickListener(dialog);
         btnOk.setOnClickListener(dcl);
@@ -205,7 +250,7 @@ public class GameActivity extends AppCompatActivity {
         dialog.show();
     }
 
-    public void showStartDialog()
+    public void showStartDialog(String str)
     {
         // Toast.makeText(this, "Custom", Toast.LENGTH_LONG).show();
         final Dialog dialog = new Dialog(this);
@@ -215,7 +260,7 @@ public class GameActivity extends AppCompatActivity {
         Button btnYes = dialog.findViewById(R.id.btnAcceptTurns);
         TextView tvTitle = dialog.findViewById(R.id.tvTitle);
 
-        tvTitle.setText("Player 1 Starts");
+        tvTitle.setText(str + " Starts");
 
         CustomDialogClickListener dcl = new CustomDialogClickListener(dialog);
         btnYes.setOnClickListener(dcl);
@@ -241,7 +286,28 @@ public class GameActivity extends AppCompatActivity {
         dialog.show();
     }
 
+    public void showChangeColorDialog(String str)
+    {
+        // Toast.makeText(this, "Custom", Toast.LENGTH_LONG).show();
+        final Dialog dialog = new Dialog(this);
+        dialog.setContentView(R.layout.change_color_dialog);
 
+        // set the custom dialog components - text, image and button
+        Button btnRed = dialog.findViewById(R.id.btnRed);
+        Button btnBlue = dialog.findViewById(R.id.btnBlue);
+        Button btnYellow = dialog.findViewById(R.id.btnYellow);
+        Button btnGreen = dialog.findViewById(R.id.btnGreen);
+        TextView tvTitle = dialog.findViewById(R.id.tvTitle);
 
+        tvTitle.setText(str + " Turn");
+
+        CustomDialogClickListener dcl = new CustomDialogClickListener(dialog);
+        btnRed.setOnClickListener(dcl);
+        btnBlue.setOnClickListener(dcl);
+        btnYellow.setOnClickListener(dcl);
+        btnGreen.setOnClickListener(dcl);
+
+        dialog.show();
+    }
 
 }

@@ -48,6 +48,7 @@
             android:background="@drawable/gradient_button"
             android:fontFamily="@font/bubble_font"
             android:text="Yes"
+            android:textAlignment="center"
             android:textColor="@color/white" />
 
         <TextView
@@ -64,6 +65,7 @@
             android:background="@drawable/gradient_button"
             android:fontFamily="@font/bubble_font"
             android:text="No"
+            android:textAlignment="center"
             android:textColor="@color/white" />
 
         <TextView

@@ -5,7 +5,6 @@ import java.util.Collections;
 
 public class Deck extends Hand{
 
-
     public Deck(){
         super();
         initData();
@@ -41,16 +40,4 @@ public class Deck extends Hand{
         return hand;
     }
 
-    // Remove First Card From Deck
-    public Card removeFirst(){
-        return super.removeFirst();
-    }
-
-    public void addCard(Card card){
-        super.addCard(card);
-    }
-
-    public ArrayList<Card> deckToArrayList(){
-        return super.cardsArray;
-    }
 }

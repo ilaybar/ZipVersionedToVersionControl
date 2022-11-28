@@ -8,28 +8,8 @@ public class Pile extends Hand{
         super();
     }
 
-    public ArrayList<Card> getPileArray(){
-        return super.cardsArray;
-    }
-
     public Card getFirst(){
-        return super.cardsArray.get(pileSize() - 1);
+        return super.cardsArray.get(super.arraySize() - 1);
     }
 
-    public void addCard(Card card){
-        super.addCard(card);
-    }
-
-    public int pileSize(){
-        return super.handSize();
-    }
-
-    public Card removeFirst(){
-        return super.removeFirst();
-    }
-
-    @Override
-    public String toString() {
-        return super.toString();
-    }
 }

@@ -1,0 +1,265 @@
+@startuml
+class ilay.bar.uno.RecyclerItemClickListener {
++ OnItemClickListener mListener
+~ GestureDetector mGestureDetector
++ <<Create>> RecyclerItemClickListener(Context,RecyclerView,OnItemClickListener)
++ boolean onInterceptTouchEvent(RecyclerView,MotionEvent)
++ void onTouchEvent(RecyclerView,MotionEvent)
++ void onRequestDisallowInterceptTouchEvent(boolean)
+}
+interface ilay.bar.uno.RecyclerItemClickListener.OnItemClickListener {
++ void onItemClick(View,int)
++ void onLongItemClick(View,int)
+}
+abstract class ilay.bar.uno.Utils {
++ {static} String imgDir
++ {static} int string2drawbleId(Context,String)
++ {static} Bitmap stringDrawableBitmap(Context,String)
+}
+class ilay.bar.uno.Model.Card {
+- Colors color
+- int value
+- boolean isFaceUp
+- {static} Random rnd
++ {static} Colors[] ColorValues
+- {static} String[] ValueNames
+- {static} String[] ValueCodes
+- {static} String Back
++ <<Create>> Card(Colors,int)
++ <<Create>> Card(Colors,int,boolean)
++ <<Create>> Card()
++ int calcFaceDrawableId(Context)
++ Colors getColor()
++ int getValue()
++ boolean getIsFaceUp()
++ void setFaceUp(boolean)
++ String getCardImageName()
++ void turn()
++ String getValueName()
++ String toString()
+}
+enum ilay.bar.uno.Model.Colors {
++  blue
++  green
++  red
++  yellow
++  black
+}
+class ilay.bar.uno.Utils2 {
+~ {static} boolean handleMainMenu(MenuItem,Activity)
+}
+class ilay.bar.uno.EndActivity {
+~ Intent intent
+# void onCreate(Bundle)
++ boolean onOptionsItemSelected(MenuItem)
++ boolean onCreateOptionsMenu(Menu)
++ void playAgainButton(View)
++ void homeButton(View)
++ void recordsButton(View)
+}
+class ilay.bar.uno.MyArrayAdapter {
+- Context context
+- Player[] valuesArr
+- ArrayList<Player> valuesList
+~ TextView tvFirstName
+~ ImageView imgPhoto
++ <<Create>> MyArrayAdapter(Context,Player[])
++ <<Create>> MyArrayAdapter(Context,ArrayList<Player>)
++ View getView(int,View,ViewGroup)
+- void handleArray(int)
+- void handleArrayList(int)
+}
+class ilay.bar.uno.SettingsActivity {
+~ Intent intent
+# void onCreate(Bundle)
++ void moveToHome(View)
+}
+class ilay.bar.uno.Model.Pile {
++ <<Create>> Pile()
++ ArrayList<Card> getPileArray()
++ Card getFirst()
++ void addCard(Card)
++ int pileSize()
++ Card removeFirst()
++ String toString()
+}
+class ilay.bar.uno.View.GameActivity {
+~ GameManager gm
+~ Intent intent
+~ String gameMode
+~ ImageView unoImage
+~ TextView tvSelected
+~ RecyclerView rclvMyCards
+~ CardAdapter cardAdapterMyCards
+~ ArrayList<Card> deck
+# void onCreate(Bundle)
++ void switchRecyclerViewsMain(String)
++ void changePileImg(Card)
++ void setCardsNonClickable()
++ void setCardsClickable()
++ void setUnoButtonClickable()
++ void setGameStatusText(String)
++ boolean onOptionsItemSelected(MenuItem)
++ boolean onCreateOptionsMenu(Menu)
++ void showPlusFourDialog()
++ void showPlusTwoDialog(String)
++ void showStartDialog(String)
++ void showContinueDialog()
++ void showChangeColorDialog(String)
+}
+class ilay.bar.uno.View.GameActivity.ItemClickListener {
++ void onItemClick(View,int)
++ void onLongItemClick(View,int)
+}
+class ilay.bar.uno.View.GameActivity.CustomDialogClickListener {
+~ Dialog dialog
++ <<Create>> CustomDialogClickListener(Dialog)
++ void onClick(View)
+}
+class ilay.bar.uno.Player {
+- String name
+- int drawableId
++ <<Create>> Player(String,int)
++ <<Create>> Player(String,Context)
++ String getName()
++ int getDrawableId()
++ String toString()
+}
+class ilay.bar.uno.RecordsActivity {
+~ Intent intent
+~ TextView tvResult
+~ ListView lvPlayers
+~ MyArrayAdapter adapter
+~ ArrayList<Player> players
+- void initData()
+# void onCreate(Bundle)
++ boolean onOptionsItemSelected(MenuItem)
++ boolean onCreateOptionsMenu(Menu)
++ void endActivity(View)
++ void onItemClick(AdapterView<?>,View,int,long)
++ boolean onItemLongClick(AdapterView<?>,View,int,long)
++ void onItemSelected(AdapterView<?>,View,int,long)
++ void onNothingSelected(AdapterView<?>)
+}
+class ilay.bar.uno.InstructionsActivity {
+~ Intent intent
+~ GameManager gm
+# void onCreate(Bundle)
++ void homeButton(View)
+}
+class ilay.bar.uno.CardAdapter {
+- Context context
+- ArrayList<Card> valuesList
++ <<Create>> CardAdapter(Context,ArrayList<Card>)
++ ViewHolder onCreateViewHolder(ViewGroup,int)
++ void onBindViewHolder(ViewHolder,int)
++ int getItemCount()
+}
+class ilay.bar.uno.CardAdapter.ViewHolder {
+- ImageView imgPhoto
++ <<Create>> ViewHolder(View)
+}
+class ilay.bar.uno.MainActivity {
+~ Intent intent
+~ Button moveToGameActivity
+~ Spinner spinnerPlayers1
+~ ArrayAdapter<Player> spinnerAdapter
+~ ArrayList<Player> players
+- void initData()
+# void onCreate(Bundle)
+- void showUserDialog()
++ boolean onOptionsItemSelected(MenuItem)
++ boolean onCreateOptionsMenu(Menu)
++ void gameModeChose(View)
++ void moveToGameActivity(View)
++ void onItemSelected(AdapterView<?>,View,int,long)
++ void onNothingSelected(AdapterView<?>)
+}
+class ilay.bar.uno.MainActivity.CustomDialogClickListener {
+~ Dialog dialog
++ <<Create>> CustomDialogClickListener(Dialog)
++ void onClick(View)
+}
+class ilay.bar.uno.Controller.GameManager {
+# {static} String gameMode
++ GameActivity unoUI
+- Deck deck
+- Pile pile
+- Hand player1Hand
+- Card pileTop
+- GameStatus gameStatus
++ <<Create>> GameManager(GameActivity)
++ void init()
++ void newGame()
++ void startGame()
++ void checkStartingCase()
++ void changeColorOrPlusFour(String,int)
++ ArrayList<Card> copyArrayList(ArrayList<Card>)
++ void hideBothHands()
++ void showBothHands()
++ void showPlayingHand()
++ void switchRecyclerViewsAndHands(String)
++ boolean hasMove(ArrayList<Card>)
++ Card shuffleIfPlusFour(Card)
++ boolean topCardSpecial()
++ Deck getDeck()
++ Pile getPile()
++ Hand getPlayer1Hand()
++ Hand getPlayer2Hand()
++ String getGameStatus()
+}
+enum ilay.bar.uno.Controller.GameStatus {
++  Player1
++  Player2
++  win
++  plus2
++  plus4
++  skip
++  reverse
++  start
+}
+class ilay.bar.uno.Model.Deck {
++ <<Create>> Deck()
++ void initData()
++ ArrayList<Card> getUserCards()
++ Card removeFirst()
++ void addCard(Card)
++ ArrayList<Card> deckToArrayList()
+}
+class ilay.bar.uno.Model.Hand {
+# ArrayList<Card> cardsArray
++ <<Create>> Hand()
++ void addCard(Card)
++ int handSize()
++ ArrayList<Card> getCardsArray()
++ void setCardsArray(ArrayList<Card>)
++ Card removeFirst()
++ String toString()
+}
+
+
+ilay.bar.uno.OnItemTouchListener <|.. ilay.bar.uno.RecyclerItemClickListener
+ilay.bar.uno.RecyclerItemClickListener +.. ilay.bar.uno.RecyclerItemClickListener.OnItemClickListener
+androidx.appcompat.app.AppCompatActivity <|-- ilay.bar.uno.EndActivity
+android.widget.ArrayAdapter <|-- ilay.bar.uno.MyArrayAdapter
+androidx.appcompat.app.AppCompatActivity <|-- ilay.bar.uno.SettingsActivity
+ilay.bar.uno.Model.Hand <|-- ilay.bar.uno.Model.Pile
+androidx.appcompat.app.AppCompatActivity <|-- ilay.bar.uno.View.GameActivity
+ilay.bar.uno.View.GameActivity +.. ilay.bar.uno.View.GameActivity.ItemClickListener
+ilay.bar.uno.View.OnItemClickListener <|.. ilay.bar.uno.View.GameActivity.ItemClickListener
+ilay.bar.uno.View.GameActivity +.. ilay.bar.uno.View.GameActivity.CustomDialogClickListener
+ilay.bar.uno.View.OnClickListener <|.. ilay.bar.uno.View.GameActivity.CustomDialogClickListener
+ilay.bar.uno.OnItemClickListener <|.. ilay.bar.uno.RecordsActivity
+ilay.bar.uno.OnItemLongClickListener <|.. ilay.bar.uno.RecordsActivity
+ilay.bar.uno.OnItemSelectedListener <|.. ilay.bar.uno.RecordsActivity
+android.app.Activity <|-- ilay.bar.uno.RecordsActivity
+androidx.appcompat.app.AppCompatActivity <|-- ilay.bar.uno.InstructionsActivity
+ilay.bar.uno.Adapter <|-- ilay.bar.uno.CardAdapter
+ilay.bar.uno.CardAdapter +.. ilay.bar.uno.CardAdapter.ViewHolder
+ilay.bar.uno.ViewHolder <|-- ilay.bar.uno.CardAdapter.ViewHolder
+ilay.bar.uno.OnItemSelectedListener <|.. ilay.bar.uno.MainActivity
+androidx.appcompat.app.AppCompatActivity <|-- ilay.bar.uno.MainActivity
+ilay.bar.uno.MainActivity +.. ilay.bar.uno.MainActivity.CustomDialogClickListener
+ilay.bar.uno.OnClickListener <|.. ilay.bar.uno.MainActivity.CustomDialogClickListener
+ilay.bar.uno.Model.Hand <|-- ilay.bar.uno.Model.Deck
+@enduml

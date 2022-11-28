@@ -14,7 +14,7 @@ public class Hand {
         cardsArray.add(card);
     }
 
-    public int handSize(){
+    public int arraySize(){
         return cardsArray.size();
     }
 
@@ -27,7 +27,7 @@ public class Hand {
     }
 
     public Card removeFirst(){
-        return cardsArray.remove(handSize() - 1);
+        return cardsArray.remove(arraySize() - 1);
     }
 
     @Override

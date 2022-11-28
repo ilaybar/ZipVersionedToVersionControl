@@ -55,14 +55,40 @@ public class GameManager {
         checkStartingCase();
 
         startGame();
+
+        // TODO: add changeTurn function, it will change the gameStatus, switchPlayerHands and more...
     }
 
     public void startGame(){
-        // TODO: manage the turns and everything. I think this function is supposed to repeat itself until someone wins.
+        // TODO: manage the turns and everything. I think this function is supposed to repeat itself until someone wins (It isn't a loop).
+        playerTurn();
+        Log.d("GameEnd", "Player1Hand: " + player1Hand.toString());
+        Log.d("GameEnd", "Player2Hand: " + player2Hand.toString());
+        Log.d("GameEnd", "Pile: " + pile.toString());
+    }
+
+    public void playerTurn(){
         showPlayingHand();
-        // Log.d("GameEnd", "Player1Hand: " + player1Hand.toString());
-        // Log.d("GameEnd", "Player2Hand: " + player2Hand.toString());
-        // Log.d("GameEnd", "Pile: " + pile.toString());
+        updateGameStatus();
+        String turn = gameStatus.toString();
+        switch (turn){
+            case "Player1":
+                // if(!hasMove(player1Hand.getCardsArray())){
+
+                // }
+                break;
+            case "Player2":
+                break;
+        }
+
+    }
+
+    public boolean isCardUsable(Card card){
+        return card.getValueName().equals(pileTop.getValueName()) || card.getColor().equals(pileTop.getColor());
+    }
+
+    public void updateGameStatus(){
+        unoUI.updateGamesStatusText(gameStatus.toString());
     }
 
     // Checks all starting cases
@@ -103,8 +129,7 @@ public class GameManager {
         }
     }
 
-    // TODO: run and check the log, when I change the color, the only thing that changes is the change color card itself. I'm not supposed to add a new one.
-    // TODO: I need to create a new function for cases where the top is change color, I just need to change the color of the black one and not add a new one.
+    // TODO: run and check the log, when I change the color, the only thing that changes is the change color card itself. I'm supposed to add a new one, when I reshuffle the pile I'll just get the weird colorChange and Plus4 out and then shuffle.
     public void changeColorOrPlusFour(String str, int i){
         switch(str){
             case "blue":
@@ -121,18 +146,7 @@ public class GameManager {
                 break;
         }
         pileTop = pile.getFirst();
-        Log.d("GameEnd", "Player1Hand: " + player1Hand.toString());
-        Log.d("GameEnd", "Player2Hand: " + player2Hand.toString());
-        Log.d("GameEnd", "Pile: " + pile.toString());
         unoUI.changePileImg(pileTop);
-    }
-
-    public ArrayList<Card> copyArrayList(ArrayList<Card> arrayList){
-        ArrayList<Card> dupArrayList = new ArrayList<Card>();
-        for(int i=0; i<arrayList.size(); i++){
-            dupArrayList.add(arrayList.get(i));
-        }
-        return dupArrayList;
     }
 
     public void hideBothHands(){
@@ -155,7 +169,7 @@ public class GameManager {
 
     public void showPlayingHand(){
         if(gameStatus.equals(GameStatus.Player1)){
-            for(int i = 0; i< player1Hand.handSize(); i++){
+            for(int i = 0; i< player1Hand.arraySize(); i++){
                 player1Hand.getCardsArray().get(i).setFaceUp(true);
             }
             for(int j = 0; j< player2Hand.getCardsArray().size(); j++){
@@ -163,7 +177,7 @@ public class GameManager {
             }
         }
         else{
-            for(int i = 0; i< player1Hand.handSize(); i++){
+            for(int i = 0; i< player1Hand.arraySize(); i++){
                 player1Hand.getCardsArray().get(i).setFaceUp(false);
             }
             for(int j = 0; j< player2Hand.getCardsArray().size(); j++){
@@ -190,7 +204,7 @@ public class GameManager {
     public Card shuffleIfPlusFour(Card card){
         while(card.getValueName().equals("Plus4")){
             deck.addCard(card);
-            Collections.shuffle(deck.deckToArrayList());
+            Collections.shuffle(deck.getCardsArray());
             card = deck.removeFirst();
         }
         return card;

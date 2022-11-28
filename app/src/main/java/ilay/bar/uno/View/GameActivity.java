@@ -48,10 +48,10 @@ public class GameActivity extends AppCompatActivity {
         gameStatus = findViewById(R.id.tvGameStatus);
 
         gm = new GameManager(this);
-        deck = gm.getDeck().deckToArrayList();
+        deck = gm.getDeck().getCardsArray();
         myCards = gm.getPlayer1Hand().getCardsArray();
         opponentCards = gm.getPlayer2Hand().getCardsArray();
-        pile = gm.getPile().getPileArray();
+        pile = gm.getPile().getCardsArray();
 
         intent = new Intent();
         gameMode = intent.getStringExtra("GameMode");
@@ -82,6 +82,10 @@ public class GameActivity extends AppCompatActivity {
         gm.newGame();
     }
 
+    public void updateGamesStatusText(String str){
+        gameStatus.setText(str + "'s Turn");
+    }
+
     public void switchRecyclerViewsMain(String turn){
         if(turn.equals("Player1")){
             myCards = gm.getPlayer1Hand().getCardsArray();
@@ -102,7 +106,13 @@ public class GameActivity extends AppCompatActivity {
         @Override
         public void onItemClick(View view, int position)
         {
-            Toast.makeText(getApplicationContext(), "selected: " + myCards.get(position), Toast.LENGTH_LONG).show();
+            // TODO: check if card can be played, if true, let it play, else, log.d that card can not be played.
+            if(gm.isCardUsable(myCards.get(position))){
+                Toast.makeText(getApplicationContext(), "Can Be Played: " + myCards.get(position), Toast.LENGTH_LONG / 2).show();
+            }
+            else{
+                Toast.makeText(getApplicationContext(), "Can't Be Played: " + myCards.get(position), Toast.LENGTH_LONG / 2).show();
+            }
             // tvSelected.setText(myCards.get(position).toString());
         }
 

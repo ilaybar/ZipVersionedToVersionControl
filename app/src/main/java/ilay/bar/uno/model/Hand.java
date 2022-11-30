@@ -1,6 +1,9 @@
 package ilay.bar.uno.Model;
 
+import android.util.Log;
+
 import java.util.ArrayList;
+import java.util.Collections;
 
 public class Hand {
 
@@ -8,6 +11,18 @@ public class Hand {
 
     public Hand(){
         this.cardsArray = new ArrayList<Card>();
+    }
+
+    public void cardsFaceDown(){
+        for (Card card:cardsArray) {
+            card.setFaceUp(false);
+        }
+    }
+
+    public void cardsFaceUp(){
+        for (Card card:cardsArray) {
+            card.setFaceUp(true);
+        }
     }
 
     public void addCard(Card card){
@@ -30,10 +45,17 @@ public class Hand {
         return cardsArray.remove(arraySize() - 1);
     }
 
+    public Card removeSpecific(int pos){
+        Log.d("Game", "removeSpecificInPos: " + pos);
+        return cardsArray.remove(pos);
+    }
+
+    public void shuffleHand(){
+        Collections.shuffle(cardsArray);
+    }
+
     @Override
     public String toString() {
-        return "Hand{" +
-                "cardsArray=" + cardsArray +
-                '}';
+        return "" + cardsArray + "";
     }
 }

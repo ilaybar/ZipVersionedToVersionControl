@@ -20,7 +20,7 @@ public class GameManager {
     private Hand player1Hand, player2Hand; // both players hands
     private Card pileTop;
 
-    private enum GameStatus {Player1, Player2, win, plus2, plus4, skip, reverse, start}
+    private enum GameStatus {Player1, Player2}
     private GameStatus gameStatus;
 
     public GameManager(GameActivity _unoUI){
@@ -33,24 +33,34 @@ public class GameManager {
         pile = new Pile();
 
         player1Hand = new Hand();
-        player1Hand.setCardsArray(deck.getUserCards());
+        // player1Hand.setCardsArray(deck.getUserCards());
+        player1Hand.addCard(new Card(Card.Colors.green, 12, true));
+        player1Hand.addCard(new Card(Card.Colors.yellow, 1, true));
+        player1Hand.addCard(new Card(Card.Colors.green, 6, true));
+        player1Hand.addCard(new Card(Card.Colors.blue, 9, true));
+        player1Hand.addCard(new Card(Card.Colors.red, 4, true));
+        player1Hand.addCard(new Card(Card.Colors.green, 2, true));
+        player1Hand.addCard(new Card(Card.Colors.yellow, 2, true));
 
         player2Hand = new Hand();
-        player2Hand.setCardsArray(deck.getUserCards());
+        // player2Hand.setCardsArray(deck.getUserCards());
+        player2Hand.addCard(new Card(Card.Colors.red, 2, true));
+        player2Hand.addCard(new Card(Card.Colors.blue, 5, true));
+        player2Hand.addCard(new Card(Card.Colors.yellow, 1, true));
+        player2Hand.addCard(new Card(Card.Colors.black, 14, true));
+        player2Hand.addCard(new Card(Card.Colors.green, 7, true));
+        player2Hand.addCard(new Card(Card.Colors.blue, 8, true));
+        player2Hand.addCard(new Card(Card.Colors.blue, 2, true));
     }
 
     public void newGame(){
-        pile.addCard(deck.removeFirst()); // Random card
-        // pile.addCard(new Card(Card.Colors.black, 14, true)); // If you want to start with a specific card
+        // pile.addCard(deck.removeFirst()); // Random card
+        pile.addCard(new Card(Card.Colors.blue, 4, true)); // If you want to start with a specific card
         pileTop = pile.getFirst();
         unoUI.changePileImg(pileTop);
         gameStatus = GameStatus.Player1;
 
         hideBothHands();
-
-        Log.d("GameStart", "Player1Hand: " + player1Hand.toString());
-        Log.d("GameStart", "Player2Hand: " + player2Hand.toString());
-        Log.d("GameStart", "Pile: " + pile.toString());
 
         checkStartingCase();
 
@@ -61,29 +71,94 @@ public class GameManager {
 
     public void startGame(){
         // TODO: manage the turns and everything. I think this function is supposed to repeat itself until someone wins (It isn't a loop).
-        playerTurn();
-        Log.d("GameEnd", "Player1Hand: " + player1Hand.toString());
-        Log.d("GameEnd", "Player2Hand: " + player2Hand.toString());
-        Log.d("GameEnd", "Pile: " + pile.toString());
-    }
-
-    public void playerTurn(){
         showPlayingHand();
         updateGameStatus();
-        String turn = gameStatus.toString();
-        switch (turn){
-            case "Player1":
-                // if(!hasMove(player1Hand.getCardsArray())){
+        logDFunction();
+    }
 
-                // }
-                break;
-            case "Player2":
-                break;
+    public void checkWin(){
+        if(player1Hand.arraySize() == 0){
+            unoUI.showWinDialog("Player1");
         }
+        if(player2Hand.arraySize() == 0){
+            unoUI.showWinDialog("Player2");
+        }
+    }
 
+    public void useCard(int pos){
+        String gameStatusSave = "";
+        if(gameStatus.equals(GameStatus.Player1)){
+            pile.addCard(player1Hand.removeSpecific(pos));
+            unoUI.setMyCards(player1Hand.getCardsArray());
+            gameStatusSave = GameStatus.Player2.toString();
+        }
+        if(gameStatus.equals(GameStatus.Player2)){
+            pile.addCard(player2Hand.removeSpecific(pos));
+            unoUI.setOpponentCards(player2Hand.getCardsArray());
+            gameStatusSave = GameStatus.Player1.toString();
+        }
+        pileTop = pile.getFirst();
+        unoUI.changePileImg(pileTop);
+        String card = pileTop.getValueName();
+        switch (card){
+            case "ChangeColor":
+                setGameStatus(gameStatusSave);
+                unoUI.showChangeColorDialog(gameStatus.toString());
+                break;
+            case "Plus2":
+                setGameStatus(gameStatusSave);
+                unoUI.showPlusTwoDialog(gameStatus.toString());
+                break;
+            case "Plus4":
+                setGameStatus(gameStatusSave);
+                unoUI.showPlusFourDialog(gameStatus.toString());
+                break;
+            case "Skip":
+            case "Reverse":
+                unoUI.showContinueDialog(gameStatus.toString());
+                break;
+            default:
+                setGameStatus(gameStatusSave);
+                hideBothHands();
+                switchRecyclerViewsAndHands();
+                updateGameStatus();
+                unoUI.showContinueDialog(gameStatusSave);
+                logDFunction();
+                handNoMove();
+        }
+        checkWin();
+        logDFunction();
+    }
+
+    public void takeCardFromDeck(Hand hand){
+        hand.addCard(deck.removeFirst());
+    }
+
+    public void logDFunction(){
+        Log.d("Game", "Player Turn: " + gameStatus.toString());
+        Log.d("Game", "Player1Hand: " + player1Hand.toString());
+        Log.d("Game", "Player2Hand: " + player2Hand.toString());
+        Log.d("Game", "");
+        Log.d("Game", "myCards: " + unoUI.getMyCards());
+        Log.d("Game", "OpponentCards: " + unoUI.getOpponentCards());
+        Log.d("Game", "");
+        Log.d("Game", "Pile: " + pile.toString());
+        Log.d("Game", "-----------------------------------");
+    }
+
+    public void setGameStatus(String str){
+        if(str.equals("Player1")){
+            gameStatus = GameStatus.Player1;
+        }
+        else{
+            gameStatus = GameStatus.Player2;
+        }
     }
 
     public boolean isCardUsable(Card card){
+        if(card.getValueName().equals("Plus4") || card.getValueName().equals("ChangeColor")){
+            return true;
+        }
         return card.getValueName().equals(pileTop.getValueName()) || card.getColor().equals(pileTop.getColor());
     }
 
@@ -109,7 +184,7 @@ public class GameManager {
             String str = pileTop.getValueName();
             switch (str){
                 case "Skip":
-                    switchRecyclerViewsAndHands(gameStatus.toString());
+                    switchRecyclerViewsAndHands();
                     unoUI.showStartDialog(gameStatus.toString());
                     break;
                 case "Reverse":
@@ -150,51 +225,46 @@ public class GameManager {
     }
 
     public void hideBothHands(){
-        for(int i = 0; i< player1Hand.getCardsArray().size(); i++){
+        for(int i = 0; i<player1Hand.getCardsArray().size(); i++){
             player1Hand.getCardsArray().get(i).setFaceUp(false);
         }
-        for(int j = 0; j< player1Hand.getCardsArray().size(); j++){
+        for(int j = 0; j<player2Hand.getCardsArray().size(); j++){
             player2Hand.getCardsArray().get(j).setFaceUp(false);
-        }
-    }
-
-    public void showBothHands(){
-        for(int i = 0; i< player1Hand.getCardsArray().size(); i++){
-            player1Hand.getCardsArray().get(i).setFaceUp(true);
-        }
-        for(int j = 0; j< player1Hand.getCardsArray().size(); j++){
-            player2Hand.getCardsArray().get(j).setFaceUp(true);
         }
     }
 
     public void showPlayingHand(){
         if(gameStatus.equals(GameStatus.Player1)){
-            for(int i = 0; i< player1Hand.arraySize(); i++){
-                player1Hand.getCardsArray().get(i).setFaceUp(true);
-            }
-            for(int j = 0; j< player2Hand.getCardsArray().size(); j++){
-                player2Hand.getCardsArray().get(j).setFaceUp(false);
+            player1Hand.cardsFaceUp();
+        }
+        else{
+            player2Hand.cardsFaceUp();
+        }
+    }
+
+    // TODO: might be a problem here
+    public void switchRecyclerViewsAndHands(){
+        unoUI.switchRecyclerViewsMain(gameStatus.toString());
+    }
+
+    public void handNoMove(){
+        if(gameStatus.equals(GameStatus.Player1)){
+            if(!hasMove(player1Hand.getCardsArray())){
+                unoUI.noCardsToPlay();
             }
         }
         else{
-            for(int i = 0; i< player1Hand.arraySize(); i++){
-                player1Hand.getCardsArray().get(i).setFaceUp(false);
-            }
-            for(int j = 0; j< player2Hand.getCardsArray().size(); j++){
-                player2Hand.getCardsArray().get(j).setFaceUp(true);
+            if(!hasMove(player2Hand.getCardsArray())){
+                unoUI.noCardsToPlay();
             }
         }
     }
 
-    public void switchRecyclerViewsAndHands(String turn){
-        unoUI.switchRecyclerViewsMain(turn);
-    }
-
     // Checks If A Hand Has A Card To Play
-    public boolean hasMove(ArrayList<Card> hand){
+    public boolean hasMove(ArrayList<Card> array){
         boolean flag = false;
-        for (int i = 0; i < hand.size(); i++){
-            if(hand.get(i).getColor().equals(pileTop.getColor()) || hand.get(i).getValueName().equals(pileTop.getValueName())){
+        for (int i = 0; i < array.size(); i++){
+            if(array.get(i).getColor().equals(pileTop.getColor()) || array.get(i).getValueName().equals(pileTop.getValueName()) || array.get(i).getValueName().equals("ChangeColor") || array.get(i).getValueName().equals("Plus4")){
                 flag = true;
             }
         }
@@ -238,4 +308,27 @@ public class GameManager {
         return gameStatus.toString();
     }
 
+    public int getDeckSize(){
+        return deck.arraySize();
+    }
+
+    public Card removePileFirst(){
+        return pile.removeFirst();
+    }
+
+    public void shufflePile(){
+        pile.shuffleHand();
+        deck.setCardsArray(pile.getCardsArray());
+        while (pile.arraySize() > 0){
+            pile.removeFirst();
+        }
+    }
+
+    public void addPileTop(Card card){
+        pile.addCard(card);
+    }
+
+    public Card removePileTop(){
+        return pile.removeFirst();
+    }
 }

@@ -6,6 +6,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.app.Dialog;
 import android.content.Intent;
+import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -47,12 +48,12 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 		 */
     }
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         moveToGameActivity = findViewById(R.id.btnMoveToGameActivity);
+
     }
 
     private class CustomDialogClickListener implements View.OnClickListener
@@ -73,7 +74,6 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             EditText edt = dialog.findViewById(R.id.edtName);
             if (id == R.id.btnSignUp){
                 reply = "Signing Up...";
-
                 TextView createANew = dialog.findViewById(R.id.txtCreateANew);
                 btnCreateUser.setVisibility(View.VISIBLE);
                 edt.setVisibility(View.VISIBLE);
@@ -88,17 +88,15 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             }
             else if (id == R.id.btnConfirm) {
                 reply = "Confirmed !";
-                Toast.makeText(getApplicationContext(), reply, Toast.LENGTH_LONG).show();
                 moveToGameActivity.setVisibility(View.VISIBLE);
                 dialog.dismiss();
 
             }
             else{
                 reply = "Empty";
-                Toast.makeText(getApplicationContext(), reply, Toast.LENGTH_LONG).show();
                 dialog.dismiss();
             }
-            Toast.makeText(getApplicationContext(), reply, Toast.LENGTH_LONG).show();
+            // Toast.makeText(getApplicationContext(), reply, Toast.LENGTH_LONG).show();
             // tvResult.setText(reply);
         }
     }
@@ -161,7 +159,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
     @Override
     public void onItemSelected(AdapterView<?> arg0, View arg1, int position,long id) {
-        Toast.makeText(getApplicationContext(), players.get(position).getName(), Toast.LENGTH_LONG).show();
+        // Toast.makeText(getApplicationContext(), players.get(position).getName(), Toast.LENGTH_LONG).show();
     }
 
     @Override

@@ -8,6 +8,7 @@ import android.app.Dialog;
 import android.content.Intent;
 import android.media.MediaPlayer;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -144,8 +145,7 @@ public class GameActivity extends AppCompatActivity {
         @Override
         public void onItemClick(View view, int position)
         {
-            // TODO: check if card can be played, if true, let it play, else, log.d that card can not be played.
-            if(gm.isCardUsable(myCards.get(position))){
+            if(gm.isCardUsable(myCards.get(position)) && gm.canUseCards()){
                 Toast.makeText(getApplicationContext(), "Can Be Used: " + myCards.get(position), Toast.LENGTH_LONG / 2).show();
                 gm.useCard(position);
             }
@@ -166,31 +166,73 @@ public class GameActivity extends AppCompatActivity {
         pileImg.setImageResource(card.calcFaceDrawableId(this));
     }
 
-    public void setCardsNonClickable(){
-        rclvMyCards.setEnabled(false);
-    }
-
-    public void setCardsClickable(){
-        rclvMyCards.setEnabled(true);
-    }
-
     public void setUnoButtonClickable(){
         unoImage.setEnabled(true);
     }
 
     public void noCardsToPlay(){
-        gameStatus.setText(gm.getGameStatus() + ": Take A Card!");
+        gameStatus.setText(gm.getGameStatus() + ": Take A Card !");
+    }
+
+    public void takeTwoCards(){
+        gameStatus.setText(gm.getGameStatus() + ": Take 2 Cards !");
     }
 
     public void deckClick(View view){
-        String str = "";
-        if(gm.getGameStatus().equals("Player1") && gm.getDeckSize() > 0){
-            gm.takeCardFromDeck(gm.getPlayer1Hand());
-            str = "Player2";
-        }
-        if(gm.getGameStatus().equals("Player2") && gm.getDeckSize() > 0){
-            gm.takeCardFromDeck(gm.getPlayer2Hand());
-            str = "Player1";
+        Boolean flag = false;
+        Card card = gm.getPileTop();
+        String str = card.getValueName();
+        String nextPlayer = "";
+        switch (str){
+            case "Plus2":
+                if(gm.getGameStatus().equals("Player1") && gm.getDeckSize() > 0){
+                    if(!gm.canUseCards()){
+                        gm.takeCardFromDeck(gm.getPlayer1Hand(), 2);
+                    }
+                    else{
+                        gm.takeCardFromDeck(gm.getPlayer1Hand(), 1);
+                        Card card1 = gm.getPlayer1Hand().getCardsArray().get(gm.getPlayer1Hand().arraySize() - 1);
+                        if(gm.isCardUsable(card1)){
+                            flag = true;
+                        }
+                    }
+                    nextPlayer = "Player2";
+                }
+                else{
+                    if(!gm.canUseCards()){
+                        gm.takeCardFromDeck(gm.getPlayer2Hand(), 2);
+                    }
+                    else{
+                        gm.takeCardFromDeck(gm.getPlayer2Hand(), 1);
+                        Card card1 = gm.getPlayer2Hand().getCardsArray().get(gm.getPlayer2Hand().arraySize() - 1);
+                        if(gm.isCardUsable(card1)){
+                            flag = true;
+                        }
+                    }
+                    nextPlayer = "Player1";
+                }
+                gm.setCanUseCards(true);
+                break;
+            case "Plus4":
+                break;
+            default:
+                if(gm.getGameStatus().equals("Player1") && gm.getDeckSize() > 0){
+                    gm.takeCardFromDeck(gm.getPlayer1Hand(), 1);
+                    Card card1 = gm.getPlayer1Hand().getCardsArray().get(gm.getPlayer1Hand().arraySize() - 1);
+                    if(gm.isCardUsable(card1)){
+                        flag = true;
+                    }
+                    nextPlayer = "Player2";
+                }
+                else if(gm.getGameStatus().equals("Player2") && gm.getDeckSize() > 0){
+                    gm.takeCardFromDeck(gm.getPlayer2Hand(), 1);
+                    Card card1 = gm.getPlayer2Hand().getCardsArray().get(gm.getPlayer2Hand().arraySize() - 1);
+                    if(gm.isCardUsable(card1)){
+                        flag = true;
+                    }
+                    nextPlayer = "Player1";
+                }
+                break;
         }
         // TODO: this doesn't work for some reason, it's important to fix it.
         /*
@@ -200,11 +242,18 @@ public class GameActivity extends AppCompatActivity {
             gm.addPileTop(card);
         }*/
         updateRecyclerViews();
-        gm.setGameStatus(str);
+        gm.setGameStatus(nextPlayer);
         gm.hideBothHands();
         gm.switchRecyclerViewsAndHands();
         gm.updateGameStatus();
         showContinueDialog(gm.getGameStatus());
+        /*
+        if(flag && gm.getGameStatus().equals("Player2")){
+            showCardTakeDialog(gm.getPlayer2Hand().getCardsArray().get(gm.getPlayer2Hand().arraySize() - 1));
+        }
+        else if(flag && gm.getGameStatus().equals("Player1")){
+            showCardTakeDialog(gm.getPlayer1Hand().getCardsArray().get(gm.getPlayer1Hand().arraySize() - 1));
+        }*/
     }
 
     @Override
@@ -258,33 +307,65 @@ public class GameActivity extends AppCompatActivity {
                 reply = "Yes";
             else if(id == R.id.btnNo)
                 reply = "No";
-            else if(id == R.id.btnAcceptTurns)
+            else if(id == R.id.btnAcceptTurns){
                 reply = "Accept Turns";
+                updateRecyclerViews();
+                gm.showPlayingHand();
+                gm.handNoMove();
+            }
             else if(id == R.id.btnContinueGame){
                 reply = "Continue Game";
                 updateRecyclerViews();
                 gm.showPlayingHand();
                 gm.logDFunction();
+                gm.handNoMove();
             }
             else if(id == R.id.btnEndScreenFromWin){
                 reply = "A Player Won";
                 moveToEndScreen();
             }
+            else if(id == R.id.btnOk){
+                reply = "Plus 2";
+                updateRecyclerViews();
+                gm.showPlayingHand();
+                gm.logDFunction();
+                gm.topIsPlus2();
+            }
             else if(id == R.id.btnBlue){ // TODO: Remember that 'plus 4' card also changes the color, it means that I need to separate between 'change color' and 'plus 4'.
                 reply = "blue";
+                gm.updateGameStatus();
+                updateRecyclerViews();
+                gm.showPlayingHand();
                 gm.changeColorOrPlusFour("blue", 14);
+                gm.hideBothHands();
+                showContinueDialog(gm.getGameStatus());
             }
             else if(id == R.id.btnRed){
                 reply = "red";
+                gm.updateGameStatus();
+                updateRecyclerViews();
+                gm.showPlayingHand();
                 gm.changeColorOrPlusFour("red", 14);
+                gm.hideBothHands();
+                showContinueDialog(gm.getGameStatus());
             }
             else if(id == R.id.btnGreen){
                 reply = "green";
+                gm.updateGameStatus();
+                updateRecyclerViews();
+                gm.showPlayingHand();
                 gm.changeColorOrPlusFour("green", 14);
+                gm.hideBothHands();
+                showContinueDialog(gm.getGameStatus());
             }
             else if(id == R.id.btnYellow){
                 reply = "yellow";
+                gm.updateGameStatus();
+                updateRecyclerViews();
+                gm.showPlayingHand();
                 gm.changeColorOrPlusFour("yellow", 14);
+                gm.hideBothHands();
+                showContinueDialog(gm.getGameStatus());
             }
             else
                 reply = "Empty";
@@ -305,7 +386,7 @@ public class GameActivity extends AppCompatActivity {
         Button btnNo = dialog.findViewById(R.id.btnNo);
         TextView tvTitle = dialog.findViewById(R.id.tvTitle);
 
-        tvTitle.setText(str + " Turn");
+        tvTitle.setText(str + "'s Turn");
 
         CustomDialogClickListener dcl = new CustomDialogClickListener(dialog);
         btnYes.setOnClickListener(dcl);
@@ -324,7 +405,7 @@ public class GameActivity extends AppCompatActivity {
         Button btnOk = dialog.findViewById(R.id.btnOk);
         TextView tvTitle = dialog.findViewById(R.id.tvTitle);
 
-        tvTitle.setText(str + " Turn");
+        tvTitle.setText(str + "'s Turn");
 
         CustomDialogClickListener dcl = new CustomDialogClickListener(dialog);
         btnOk.setOnClickListener(dcl);
@@ -360,7 +441,7 @@ public class GameActivity extends AppCompatActivity {
         Button btnContinue = dialog.findViewById(R.id.btnContinueGame);
         TextView tvTitle = dialog.findViewById(R.id.tvTitle);
 
-        tvTitle.setText(str + " Turn");
+        tvTitle.setText(str + "'s Turn");
 
         CustomDialogClickListener dcl = new CustomDialogClickListener(dialog);
         btnContinue.setOnClickListener(dcl);
@@ -381,13 +462,40 @@ public class GameActivity extends AppCompatActivity {
         Button btnGreen = dialog.findViewById(R.id.btnGreen);
         TextView tvTitle = dialog.findViewById(R.id.tvTitle);
 
-        tvTitle.setText(str + " Turn");
+        tvTitle.setText(str + "'s Turn");
 
         CustomDialogClickListener dcl = new CustomDialogClickListener(dialog);
         btnRed.setOnClickListener(dcl);
         btnBlue.setOnClickListener(dcl);
         btnYellow.setOnClickListener(dcl);
         btnGreen.setOnClickListener(dcl);
+
+        dialog.show();
+    }
+
+    public void showCardTakeDialog(Card card)
+    {
+        // Toast.makeText(this, "Custom", Toast.LENGTH_LONG).show();
+        final Dialog dialog = new Dialog(this);
+        dialog.setContentView(R.layout.card_take_dialog);
+
+        // set the custom dialog components - text, image and button
+        Button btnPlayIt = dialog.findViewById(R.id.btnPlayIt);
+        Button btnSaveIt = dialog.findViewById(R.id.btnSaveIt);
+        TextView tvTitle = dialog.findViewById(R.id.tvTitle);
+        ImageView imgCard = dialog.findViewById(R.id.imgCard);
+
+        if(gm.getGameStatus().equals("Player1")){
+            tvTitle.setText("Player2" + "'s Turn");
+        }
+        else{
+            tvTitle.setText("Player1" + "'s Turn");
+        }
+        imgCard.setImageResource(card.calcFaceDrawableId(this));
+
+        CustomDialogClickListener dcl = new CustomDialogClickListener(dialog);
+        btnPlayIt.setOnClickListener(dcl);
+        btnSaveIt.setOnClickListener(dcl);
 
         dialog.show();
     }

@@ -13,13 +13,13 @@ import ilay.bar.uno.View.GameActivity;
 
 public class GameManager {
 
-    protected static String gameMode, Player1Name, Player2Name;
     public GameActivity unoUI; // a reference to the activity
     private Deck deck;
     private Pile pile;
     private Hand player1Hand, player2Hand; // both players hands
     private Card pileTop;
     private boolean canUseCards;
+    private String player1Name, player2Name;
 
     private enum GameStatus {Player1, Player2}
     private GameStatus gameStatus;
@@ -47,7 +47,6 @@ public class GameManager {
 
         player2Hand = new Hand();
         player2Hand.setCardsArray(deck.getUserCards());
-
         /*
         player2Hand.addCard(new Card(Card.Colors.red, 2, true));
         player2Hand.addCard(new Card(Card.Colors.blue, 5, true));
@@ -106,14 +105,14 @@ public class GameManager {
         switch (card){
             case "ChangeColor": // Works fine I think
                 unoUI.showChangeColorDialog(gameStatus.toString()); // show dialog
-                switchRecyclerViewsAndHands();
+                updateRecyclerViews();
                 setGameStatus(gameStatusSave);
                 updateGameStatus();
                 break;
             case "Plus2": // Works fine I think
                 setGameStatus(gameStatusSave);
                 hideBothHands();
-                switchRecyclerViewsAndHands();
+                updateRecyclerViews();
                 updateGameStatus();
                 unoUI.showPlusTwoDialog(gameStatus.toString()); // show dialog
                 topIsPlus2();
@@ -131,7 +130,8 @@ public class GameManager {
             default: // Works fine I think
                 setGameStatus(gameStatusSave);
                 hideBothHands(); // These three repeat themselves i think i can merge into a function
-                switchRecyclerViewsAndHands(); // These three repeat themselves i think i can merge into a function
+                updateRecyclerViews(); // These three repeat themselves i think i can merge into a function
+                // unoUI.updateRecyclerViews();
                 updateGameStatus(); // These three repeat themselves i think i can merge into a function
                 unoUI.showContinueDialog(gameStatusSave); // show dialog
                 handNoMove();
@@ -198,7 +198,7 @@ public class GameManager {
             String str = pileTop.getValueName();
             switch (str){
                 case "Skip":
-                    switchRecyclerViewsAndHands();
+                    updateRecyclerViews();
                     unoUI.showStartDialog(gameStatus.toString());
                     break;
                 case "Reverse":
@@ -259,8 +259,8 @@ public class GameManager {
         }
     }
 
-    public void switchRecyclerViewsAndHands(){
-        unoUI.switchRecyclerViewsMain(gameStatus.toString());
+    public void updateRecyclerViews(){
+        unoUI.updateRecyclerViews();
     }
 
     public void topIsPlus2(){
@@ -275,12 +275,12 @@ public class GameManager {
 
     public void handNoMove(){
         if(gameStatus.equals(GameStatus.Player1)){
-            if(!hasMove(player1Hand.getCardsArray())){
+            if(hasMove(player1Hand.getCardsArray())){
                 unoUI.noCardsToPlay();
             }
         }
         else{
-            if(!hasMove(player2Hand.getCardsArray())){
+            if(hasMove(player2Hand.getCardsArray())){
                 unoUI.noCardsToPlay();
             }
         }
@@ -294,7 +294,7 @@ public class GameManager {
                 flag = true;
             }
         }
-        return flag;
+        return !flag;
     }
 
     public Card shuffleIfPlusFour(Card card){
@@ -308,10 +308,7 @@ public class GameManager {
 
     public boolean topCardSpecial(){
         Card card = pileTop;
-        if(card.getValueName().equals("Plus2") || card.getValueName().equals("ChangeColor") || card.getValueName().equals("Reverse") || pileTop.getValueName().equals("Skip")){
-            return true;
-        }
-        return false;
+        return card.getValueName().equals("Plus2") || card.getValueName().equals("ChangeColor") || card.getValueName().equals("Reverse") || pileTop.getValueName().equals("Skip");
     }
 
     public Deck getDeck() {
@@ -348,10 +345,6 @@ public class GameManager {
 
     public void setCanUseCards(boolean bool){
         canUseCards = bool;
-    }
-
-    public Card removePileFirst(){
-        return pile.removeFirst();
     }
 
     public void shufflePile(){

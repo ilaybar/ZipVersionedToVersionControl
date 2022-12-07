@@ -6,9 +6,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import android.app.Dialog;
 import android.content.Intent;
-import android.media.MediaPlayer;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -39,7 +37,7 @@ public class GameActivity extends AppCompatActivity {
     TextView tvSelected, gameStatus;
     RecyclerView rclvMyCards, rclvOpponentCards;
     CardAdapter cardAdapterMyCards, cardAdapterOpponentCards;
-    ArrayList<Card> deck, myCards, opponentCards, pile, temp;
+    ArrayList<Card> deck, myCards, opponentCards, pile;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -86,6 +84,10 @@ public class GameActivity extends AppCompatActivity {
         gm.newGame();
     }
 
+    public void updateGamesStatusText(String str){
+        gameStatus.setText(str + "'s Turn");
+    }
+
     public ArrayList<Card> getMyCards() {
         return myCards;
     }
@@ -106,27 +108,6 @@ public class GameActivity extends AppCompatActivity {
         cardAdapterOpponentCards = new CardAdapter(this, opponentCards);
         rclvOpponentCards.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
         rclvOpponentCards.setAdapter(cardAdapterOpponentCards);
-    }
-
-    public void updateGamesStatusText(String str){
-        gameStatus.setText(str + "'s Turn");
-    }
-
-    // Switches the recyclerViews according to the turn, if player1 turn: my cards = player1Hand, else: my cards = player2Hand.
-    public void switchRecyclerViewsMain(String turn){
-        if(turn.equals("Player1")){
-            myCards = gm.getPlayer1Hand().getCardsArray();
-            opponentCards = gm.getPlayer2Hand().getCardsArray();
-        }
-        if(turn.equals("Player2")){
-            myCards = gm.getPlayer2Hand().getCardsArray();
-            opponentCards = gm.getPlayer1Hand().getCardsArray();
-        }
-        cardAdapterMyCards = new CardAdapter(this, myCards);
-        cardAdapterOpponentCards = new CardAdapter(this, opponentCards);
-        rclvMyCards.setAdapter(cardAdapterMyCards);
-        rclvOpponentCards.setAdapter(cardAdapterOpponentCards);
-
     }
 
     public void updateRecyclerViews(){
@@ -179,7 +160,7 @@ public class GameActivity extends AppCompatActivity {
     }
 
     public void deckClick(View view){
-        Boolean flag = false;
+        boolean flag = false;
         Card card = gm.getPileTop();
         String str = card.getValueName();
         String nextPlayer = "";
@@ -241,10 +222,9 @@ public class GameActivity extends AppCompatActivity {
             gm.shufflePile();
             gm.addPileTop(card);
         }*/
-        updateRecyclerViews();
         gm.setGameStatus(nextPlayer);
         gm.hideBothHands();
-        gm.switchRecyclerViewsAndHands();
+        gm.updateRecyclerViews();
         gm.updateGameStatus();
         showContinueDialog(gm.getGameStatus());
         /*

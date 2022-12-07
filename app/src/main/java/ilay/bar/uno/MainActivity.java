@@ -6,7 +6,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.app.Dialog;
 import android.content.Intent;
-import android.media.MediaPlayer;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -24,7 +24,8 @@ import java.util.ArrayList;
 
 import ilay.bar.uno.View.GameActivity;
 
-public class MainActivity extends AppCompatActivity implements AdapterView.OnItemSelectedListener {
+public class MainActivity extends AppCompatActivity implements AdapterView.OnItemSelectedListener
+        , AdapterView.OnItemLongClickListener, AdapterView.OnItemClickListener{
 
     Intent intent;
     Button moveToGameActivity;
@@ -34,6 +35,11 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
     ArrayList<Player> players;
 
+    private final String PlayersKey = "artistsStr";
+    private final String PrefName = "MyPrefs";
+    private SharedPreferences pref;
+    private SharedPreferences.Editor editor;
+
     private void initData()
     {
         players = new ArrayList<Player>();
@@ -41,11 +47,6 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         players.add(new Player("John", this));
         players.add(new Player("George", this));
         players.add(new Player("Ringo", this));
-
-		/*
-		Bitmap photo = Utils.stringDrawableBitmap(this, "paul");
-		items2.add(new Person("Paul", "McCartney", photo));
-		 */
     }
 
     @Override
@@ -53,7 +54,6 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         moveToGameActivity = findViewById(R.id.btnMoveToGameActivity);
-
     }
 
     private class CustomDialogClickListener implements View.OnClickListener
@@ -84,19 +84,19 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             else if (id == R.id.btnCreateUser){
                 reply = "User Created !";
                 players.add(new Player(edt.getText().toString(), MainActivity.this));
-                btnCreateUser.setEnabled(false);
+                save();
+                btnCreateUser.setEnabled(true);
             }
             else if (id == R.id.btnConfirm) {
                 reply = "Confirmed !";
                 moveToGameActivity.setVisibility(View.VISIBLE);
                 dialog.dismiss();
-
             }
             else{
                 reply = "Empty";
                 dialog.dismiss();
             }
-            // Toast.makeText(getApplicationContext(), reply, Toast.LENGTH_LONG).show();
+            Toast.makeText(getApplicationContext(), reply, Toast.LENGTH_SHORT).show();
             // tvResult.setText(reply);
         }
     }
@@ -118,17 +118,47 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         btnSignUp.setOnClickListener(dcl);
         btnConfirm.setOnClickListener(dcl);
 
+        //
         initData();
+
+        pref = getSharedPreferences(PrefName, 0); // 0 - for private mode
+        editor = pref.edit();
+
+        spinnerAdapter = new ArrayAdapter<Player>(this, R.layout.person_adapter2, R.id.tvFullName, players);
+
+        load();
+        //
 
         spinnerPlayers1 = dialog.findViewById(R.id.spinner1);
         spinnerPlayers2 = dialog.findViewById(R.id.spinner2);
-        spinnerAdapter = new ArrayAdapter<Player>(this, R.layout.person_adapter2, R.id.tvFullName, players);
         spinnerPlayers1.setAdapter(spinnerAdapter);
         spinnerPlayers1.setOnItemSelectedListener(this);
         spinnerPlayers2.setAdapter(spinnerAdapter);
         spinnerPlayers2.setOnItemSelectedListener(this);
 
         dialog.show();
+    }
+
+    // Handle click on an item (displays it in the TextView)
+    @Override
+    public void onItemClick(AdapterView<?> parent, View v, int position, long id)
+    {
+        Toast.makeText(getApplicationContext(), "select: " + players.get(position), Toast.LENGTH_LONG).show();
+        // tvSelected.setText(artists.get(position).toString());
+
+    }
+
+    // Handle a long click on an item (deletes it)
+    @Override
+    public boolean onItemLongClick(AdapterView<?> parent, View v, int position, long id)
+    {
+        Toast.makeText(getApplicationContext(),
+                "del: " + players.get(position),
+                Toast.LENGTH_LONG).show();
+        players.remove(position);
+        spinnerAdapter.notifyDataSetChanged(); // Update the ListView
+
+        return true;  // i.e. all ended well
     }
 
     @Override
@@ -165,6 +195,26 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     @Override
     public void onNothingSelected(AdapterView<?> arg0) {
         // TODO Auto-generated method stub
+    }
+
+    public void save()
+    {
+        Toast.makeText(this, "Save", Toast.LENGTH_LONG).show();
+        PrefsUtils.writePlayersList(players, editor, PlayersKey);
+    }
+
+    public void load()
+    {
+        Toast.makeText(this, "Load", Toast.LENGTH_LONG).show();
+        ArrayList<Player> personArrList = PrefsUtils.readPlayersList(pref, PlayersKey);
+        // copy new list to artists
+        // since the adapter is tied to the artists ArrayList
+        if (personArrList != null)
+        {
+            players.clear();
+            players.addAll(personArrList);
+            spinnerAdapter.notifyDataSetChanged();
+        }
     }
 
 }

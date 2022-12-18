@@ -3,19 +3,28 @@ package ilay.bar.uno;
 import static ilay.bar.uno.Utils2.handleMainMenu;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
+import android.media.Image;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.AdapterView;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 
 public class RecordsActivity extends Activity
         implements AdapterView.OnItemClickListener, AdapterView.OnItemLongClickListener,
@@ -27,16 +36,16 @@ public class RecordsActivity extends Activity
     TextView tvResult, tvDummy;
     ListView lvPlayers;
     MyArrayAdapter adapter;
-    ArrayList<Player> players; //persons
+
+    ArrayList<Player> players;
+    private SharedPreferences pref;
+    private SharedPreferences.Editor editor;
+
+    TextView tvFirstName,tvPlayed, tvWon, tvLost;
 
     private void initData()
     {
         players = new ArrayList<Player>();
-        players.add(new Player("Paul", this));
-        players.add(new Player("John", this));
-        players.add(new Player("George", this));
-        players.add(new Player("Ringo", this));
-
         /*
 		Bitmap photo = Utils.stringDrawableBitmap(this, "paul");
 		items2.add(new Person("Paul", "McCartney", photo));
@@ -53,7 +62,26 @@ public class RecordsActivity extends Activity
         tvDummy = (TextView) findViewById(R.id.tvDummy);
         lvPlayers = (ListView) findViewById(R.id.lvData);
 
+        pref = getSharedPreferences(Globals.PrefName, 0); // 0 - for private mode
+        editor = pref.edit();
+
         adapter = new MyArrayAdapter(this, players);
+
+        load();
+
+        /*
+        Collections.sort(players, new Comparator<Player>() {
+            @Override
+            public int compare(Player p1, Player p2) {
+                // Calculate win ratio for each player
+                double p1WinRatio = (double) p1.getWins() / p1.getPlayed();
+                double p2WinRatio = (double) p2.getWins() / p2.getPlayed();
+                // Compare win ratios
+                return Double.compare(p2WinRatio, p1WinRatio);
+            }
+        }); */
+
+
 
         lvPlayers.setAdapter(adapter);
         lvPlayers.setOnItemClickListener(this);
@@ -109,6 +137,20 @@ public class RecordsActivity extends Activity
     @Override
     public void onNothingSelected(AdapterView<?> adapterView) {
 
+    }
+
+    public void load()
+    {
+        Toast.makeText(this, "Load", Toast.LENGTH_LONG).show();
+        ArrayList<Player> personArrList = PrefsUtils.readPlayersList(pref, Globals.PlayersKey);
+        // copy new list to artists
+        // since the adapter is tied to the artists ArrayList
+        if (personArrList != null)
+        {
+            players.clear();
+            players.addAll(personArrList);
+            adapter.notifyDataSetChanged();
+        }
     }
 
 }

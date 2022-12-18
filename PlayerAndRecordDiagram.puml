@@ -1,0 +1,40 @@
+@startuml
+class ilay.bar.uno.RecordsActivity {
+~ Intent intent
+~ TextView tvResult
+~ ListView lvPlayers
+~ MyArrayAdapter adapter
+~ ArrayList<Player> players
+- void initData()
+# void onCreate(Bundle)
++ boolean onOptionsItemSelected(MenuItem)
++ boolean onCreateOptionsMenu(Menu)
++ void endActivity(View)
++ void onItemClick(AdapterView<?>,View,int,long)
++ boolean onItemLongClick(AdapterView<?>,View,int,long)
++ void onItemSelected(AdapterView<?>,View,int,long)
++ void onNothingSelected(AdapterView<?>)
+}
+class ilay.bar.uno.Player {
+- String name
+- int wins
+- int drawableId
++ <<Create>> Player(String,int)
++ <<Create>> Player(String)
++ String getName()
++ int getDrawableId()
++ int getWins()
++ void setWins(int)
++ int getLosses()
++ void setLosses(int)
++ int getPlayed()
++ void setPlayed(int)
++ String toString()
+}
+
+
+ilay.bar.uno.OnItemClickListener <|.. ilay.bar.uno.RecordsActivity
+ilay.bar.uno.OnItemLongClickListener <|.. ilay.bar.uno.RecordsActivity
+ilay.bar.uno.OnItemSelectedListener <|.. ilay.bar.uno.RecordsActivity
+android.app.Activity <|-- ilay.bar.uno.RecordsActivity
+@enduml

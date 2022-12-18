@@ -12,13 +12,18 @@ public class Player
 	public Player(String _name, int _drawableId)
 	{
 		this.name = _name;
+		this.played = 0;
+		this.wins = 0;
+		this.losses = 0;
 		this.drawableId = _drawableId;
 	}
 
-	public Player(String _name, Context context)
+	public Player(String _name)
 	{
+		this.played = 0;
+		this.wins = 0;
+		this.losses = 0;
 		this.name = _name;
-		// this.drawableId = Utils.string2drawbleId(context, name.toLowerCase());
 	}
 
 	public String getName()
@@ -53,6 +58,18 @@ public class Player
 
 	public void setPlayed(int played) {
 		this.played = played;
+	}
+
+	public void addPlayed(){
+		this.played++;
+	}
+
+	public void addWin(){
+		this.wins++;
+	}
+
+	public void addLose(){
+		this.losses++;
 	}
 
 	@Override

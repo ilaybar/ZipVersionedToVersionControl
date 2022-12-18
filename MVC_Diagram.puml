@@ -1,0 +1,160 @@
+@startuml
+class ilay.bar.uno.Model.Hand {
+# ArrayList<Card> cardsArray
++ <<Create>> Hand()
++ void cardsFaceDown()
++ void cardsFaceUp()
++ void addCard(Card)
++ int arraySize()
++ ArrayList<Card> getCardsArray()
++ void setCardsArray(ArrayList<Card>)
++ Card removeFirst()
++ Card removeSpecific(int)
++ void shuffleHand()
++ String toString()
+}
+class ilay.bar.uno.Controller.GameManager {
++ GameActivity unoUI
+- Deck deck
+- Pile pile
+- Hand player1Hand
+- Card pileTop
+- boolean canUseCards
+- String player1Name
+- GameStatus gameStatus
++ <<Create>> GameManager(GameActivity)
++ void init()
++ void newGame()
++ void startGame()
++ void checkWin()
++ void useCard(int)
++ void takeCardFromDeck(Hand,int)
++ void logDFunction()
++ void setGameStatus(String)
++ boolean isCardUsable(Card)
++ void updateGameStatus()
++ void checkStartingCase()
++ void changeColorOrPlusFour(String,int)
++ void hideBothHands()
++ void showPlayingHand()
++ void updateRecyclerViews()
++ void topIsPlus2()
++ void topIsPlus4()
++ void handNoMove()
++ boolean hasMove(ArrayList<Card>)
++ Card shuffleIfPlusFour(Card)
++ boolean topCardSpecial()
++ Deck getDeck()
++ Pile getPile()
++ Card getPileTop()
++ Hand getPlayer1Hand()
++ Hand getPlayer2Hand()
++ String getGameStatus()
++ int getDeckSize()
++ void setPlayer1Name(String)
++ void setPlayer2Name(String)
++ String getPlayer1Name()
++ String getPlayer2Name()
++ boolean canUseCards()
++ void setCanUseCards(boolean)
++ void shufflePile()
++ void addPileTop(Card)
++ Card removePileTop()
++ void playerChallenge(boolean,boolean)
+}
+enum ilay.bar.uno.Controller.GameStatus {
++  Player1
++  Player2
+}
+class ilay.bar.uno.View.GameActivity {
+~ GameManager gm
+~ Intent intent
+~ String gameMode
+~ ImageView unoImage
+~ TextView tvSelected
+~ RecyclerView rclvMyCards
+~ CardAdapter cardAdapterMyCards
+~ ArrayList<Card> deck
+# void onCreate(Bundle)
++ void updateGamesStatusText(String)
++ ArrayList<Card> getMyCards()
++ ArrayList<Card> getOpponentCards()
++ void setMyCards(ArrayList<Card>)
++ void setOpponentCards(ArrayList<Card>)
++ void updateRecyclerViews()
++ void changePileImg(Card)
++ void setUnoButtonClickable()
++ void noCardsToPlay()
++ void takeTwoCards()
++ void takeFourCards()
++ void takeSixCards()
++ void deckClick(View)
++ boolean onOptionsItemSelected(MenuItem)
++ boolean onCreateOptionsMenu(Menu)
++ void showPlusFourDialog(String)
++ void showPlusTwoDialog(String)
++ void showStartDialog(String)
++ void showContinueDialog(String)
++ void showChangeColorDialog(String)
++ void showCardTakeDialog(Card)
++ void showWinDialog(String)
++ String getNameFromStatus(String)
++ void moveToEndScreen()
+}
+class ilay.bar.uno.View.GameActivity.ItemClickListener {
++ void onItemClick(View,int)
++ void onLongItemClick(View,int)
+}
+class ilay.bar.uno.View.GameActivity.CustomDialogClickListener {
+~ Dialog dialog
++ <<Create>> CustomDialogClickListener(Dialog)
++ void onClick(View)
+}
+class ilay.bar.uno.Model.Deck {
++ <<Create>> Deck()
++ void initData()
++ ArrayList<Card> getUserCards()
+}
+class ilay.bar.uno.Model.Pile {
++ <<Create>> Pile()
++ Card getFirst()
+}
+class ilay.bar.uno.Model.Card {
+- Colors color
+- int value
+- boolean isFaceUp
+- {static} Random rnd
++ {static} Colors[] ColorValues
+- {static} String[] ValueNames
+- {static} String[] ValueCodes
+- {static} String Back
++ <<Create>> Card(Colors,int)
++ <<Create>> Card(Colors,int,boolean)
++ <<Create>> Card()
++ int calcFaceDrawableId(Context)
++ Colors getColor()
++ int getValue()
++ boolean getIsFaceUp()
++ void setFaceUp(boolean)
++ String getCardImageName()
++ void turn()
++ String getValueName()
++ String toString()
+}
+enum ilay.bar.uno.Model.Colors {
++  blue
++  green
++  red
++  yellow
++  black
+}
+
+
+androidx.appcompat.app.AppCompatActivity <|-- ilay.bar.uno.View.GameActivity
+ilay.bar.uno.View.GameActivity +.. ilay.bar.uno.View.GameActivity.ItemClickListener
+ilay.bar.uno.View.OnItemClickListener <|.. ilay.bar.uno.View.GameActivity.ItemClickListener
+ilay.bar.uno.View.GameActivity +.. ilay.bar.uno.View.GameActivity.CustomDialogClickListener
+ilay.bar.uno.View.OnClickListener <|.. ilay.bar.uno.View.GameActivity.CustomDialogClickListener
+ilay.bar.uno.Model.Hand <|-- ilay.bar.uno.Model.Deck
+ilay.bar.uno.Model.Hand <|-- ilay.bar.uno.Model.Pile
+@enduml

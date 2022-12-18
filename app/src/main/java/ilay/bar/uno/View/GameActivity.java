@@ -6,7 +6,9 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import android.app.Dialog;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -21,7 +23,10 @@ import java.util.ArrayList;
 import ilay.bar.uno.CardAdapter;
 import ilay.bar.uno.Controller.GameManager;
 import ilay.bar.uno.EndActivity;
+import ilay.bar.uno.Globals;
 import ilay.bar.uno.Model.Card;
+import ilay.bar.uno.Player;
+import ilay.bar.uno.PrefsUtils;
 import ilay.bar.uno.R;
 import ilay.bar.uno.RecyclerItemClickListener;
 
@@ -32,6 +37,7 @@ public class GameActivity extends AppCompatActivity {
     Intent intent;
     String gameMode, player1Name, player2Name;
     ImageView unoImage, pileImg, deckImg;
+    int player1Index, player2Index;
 
     // RecyclerView
     TextView tvSelected, gameStatus;
@@ -39,10 +45,18 @@ public class GameActivity extends AppCompatActivity {
     CardAdapter cardAdapterMyCards, cardAdapterOpponentCards;
     ArrayList<Card> deck, myCards, opponentCards, pile;
 
+    ArrayList<Player> players;
+    private SharedPreferences pref;
+    private SharedPreferences.Editor editor;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_game);
+
+        Intent mainActivityIntent = getIntent();
+        player1Index = mainActivityIntent.getIntExtra("Player1", 0);
+        player2Index = mainActivityIntent.getIntExtra("Player2", 0);
 
         pileImg = findViewById(R.id.imgPile);
         gameStatus = findViewById(R.id.tvGameStatus);
@@ -50,6 +64,8 @@ public class GameActivity extends AppCompatActivity {
         deckImg.setOnClickListener(this::deckClick);
 
         gm = new GameManager(this);
+        gm.setPlayer1Index(player1Index);
+        gm.setPlayer2Index(player2Index);
         deck = gm.getDeck().getCardsArray();
         myCards = gm.getPlayer1Hand().getCardsArray();
         opponentCards = gm.getPlayer2Hand().getCardsArray();
@@ -79,8 +95,16 @@ public class GameActivity extends AppCompatActivity {
         RecyclerItemClickListener hListener1 = new RecyclerItemClickListener(this, rclvMyCards, itemClickListener);
         rclvMyCards.addOnItemTouchListener(hListener1);
 
-        // rclvOpponentCards.addOnItemTouchListener(hListener2);
+        players = new ArrayList<>();
+        pref = getSharedPreferences(Globals.PrefName, 0); // 0 - for private mode
+        editor = pref.edit();
+        players = PrefsUtils.readPlayersList(pref, Globals.PlayersKey);
 
+        gm.setPlayer1Index(player1Index);
+        gm.setPlayer1Name(players.get(player1Index).getName());
+        gm.setPlayer2Index(player2Index);
+        gm.setPlayer2Name(players.get(player2Index).getName());
+        gm.setPlayers(players);
         gm.newGame();
     }
 
@@ -152,13 +176,26 @@ public class GameActivity extends AppCompatActivity {
     }
 
     public void noCardsToPlay(){
-        gameStatus.setText(gm.getGameStatus() + ": Take A Card !");
+        String name = getNameFromStatus(gm.getGameStatus());
+        gameStatus.setText(name + ": Take A Card !");
     }
 
     public void takeTwoCards(){
-        gameStatus.setText(gm.getGameStatus() + ": Take 2 Cards !");
+        String name = getNameFromStatus(gm.getGameStatus());
+        gameStatus.setText(name + ": Take 2 Cards !");
     }
 
+    public void takeFourCards(){
+        String name = getNameFromStatus(gm.getGameStatus());
+        gameStatus.setText(name + ": Take 4 Cards !");
+    }
+
+    public void takeSixCards(){
+        String name = getNameFromStatus(gm.getGameStatus());
+        gameStatus.setText(name + ": Take 6 Cards !");
+    }
+
+    // TODO: add a thing for plus4
     public void deckClick(View view){
         boolean flag = false;
         Card card = gm.getPileTop();
@@ -195,6 +232,7 @@ public class GameActivity extends AppCompatActivity {
                 gm.setCanUseCards(true);
                 break;
             case "Plus4":
+                gm.setCanUseCards(true);
                 break;
             default:
                 if(gm.getGameStatus().equals("Player1") && gm.getDeckSize() > 0){
@@ -283,10 +321,22 @@ public class GameActivity extends AppCompatActivity {
         {
             int id = v.getId();
             String reply;
-            if (id == R.id.btnYes)
+            if (id == R.id.btnYes){
                 reply = "Yes";
-            else if(id == R.id.btnNo)
+                if(gm.getGameStatus().equals("Player2")){
+                    Log.d("TAG", "player1's Cards: " + gm.getPlayer1Hand());
+                    gm.playerChallenge(true, gm.hasMove(gm.getPlayer1Hand().getCardsArray()));
+                }
+                else{
+                    Log.d("TAG", "player2's Cards: " + gm.getPlayer2Hand());
+                    gm.playerChallenge(true, gm.hasMove(gm.getPlayer2Hand().getCardsArray()));
+                }
+                Log.d("TAG", "PileTop: " + gm.getPileTop());
+            }
+            else if(id == R.id.btnNo){
                 reply = "No";
+                gm.playerChallenge(false, false);
+            }
             else if(id == R.id.btnAcceptTurns){
                 reply = "Accept Turns";
                 updateRecyclerViews();
@@ -311,51 +361,44 @@ public class GameActivity extends AppCompatActivity {
                 gm.logDFunction();
                 gm.topIsPlus2();
             }
-            else if(id == R.id.btnBlue){ // TODO: Remember that 'plus 4' card also changes the color, it means that I need to separate between 'change color' and 'plus 4'.
-                reply = "blue";
-                gm.updateGameStatus();
+            else if(id == R.id.btnBlue || id == R.id.btnRed || id == R.id.btnGreen || id == R.id.btnYellow){
+                reply = "";
+                switch (id){
+                    case R.id.btnBlue:
+                        reply = "blue";
+                        gm.changeColorOrPlusFour("blue", gm.getPileTop().getValue());
+                        break;
+                    case R.id.btnRed:
+                        gm.changeColorOrPlusFour("red", gm.getPileTop().getValue());
+                        reply = "red";
+                        break;
+                    case R.id.btnGreen:
+                        gm.changeColorOrPlusFour("green", gm.getPileTop().getValue());
+                        reply = "green";
+                        break;
+                    case R.id.btnYellow:
+                        gm.changeColorOrPlusFour("yellow", gm.getPileTop().getValue());
+                        reply = "yellow";
+                        break;
+                }
+                if(gm.getPileTop().getValueName().equals("Plus4")){
+                    gm.updateGameStatus();
+                }
                 updateRecyclerViews();
                 gm.showPlayingHand();
-                gm.changeColorOrPlusFour("blue", 14);
                 gm.hideBothHands();
                 showContinueDialog(gm.getGameStatus());
             }
-            else if(id == R.id.btnRed){
-                reply = "red";
-                gm.updateGameStatus();
-                updateRecyclerViews();
-                gm.showPlayingHand();
-                gm.changeColorOrPlusFour("red", 14);
-                gm.hideBothHands();
-                showContinueDialog(gm.getGameStatus());
-            }
-            else if(id == R.id.btnGreen){
-                reply = "green";
-                gm.updateGameStatus();
-                updateRecyclerViews();
-                gm.showPlayingHand();
-                gm.changeColorOrPlusFour("green", 14);
-                gm.hideBothHands();
-                showContinueDialog(gm.getGameStatus());
-            }
-            else if(id == R.id.btnYellow){
-                reply = "yellow";
-                gm.updateGameStatus();
-                updateRecyclerViews();
-                gm.showPlayingHand();
-                gm.changeColorOrPlusFour("yellow", 14);
-                gm.hideBothHands();
-                showContinueDialog(gm.getGameStatus());
-            }
-            else
+            else{
                 reply = "Empty";
+            }
             Toast.makeText(getApplicationContext(), reply, Toast.LENGTH_LONG).show();
             // tvResult.setText(reply);
             dialog.dismiss();
         }
     }
 
-    public void showPlusFourDialog(String str)
+    public void showPlusFourDialog(String status)
     {
         // Toast.makeText(this, "Custom", Toast.LENGTH_LONG).show();
         final Dialog dialog = new Dialog(this);
@@ -366,7 +409,8 @@ public class GameActivity extends AppCompatActivity {
         Button btnNo = dialog.findViewById(R.id.btnNo);
         TextView tvTitle = dialog.findViewById(R.id.tvTitle);
 
-        tvTitle.setText(str + "'s Turn");
+        String name = getNameFromStatus(status);
+        tvTitle.setText(name + "'s Turn");
 
         CustomDialogClickListener dcl = new CustomDialogClickListener(dialog);
         btnYes.setOnClickListener(dcl);
@@ -375,7 +419,7 @@ public class GameActivity extends AppCompatActivity {
         dialog.show();
     }
 
-    public void showPlusTwoDialog(String str)
+    public void showPlusTwoDialog(String status)
     {
         // Toast.makeText(this, "Custom", Toast.LENGTH_LONG).show();
         final Dialog dialog = new Dialog(this);
@@ -385,7 +429,8 @@ public class GameActivity extends AppCompatActivity {
         Button btnOk = dialog.findViewById(R.id.btnOk);
         TextView tvTitle = dialog.findViewById(R.id.tvTitle);
 
-        tvTitle.setText(str + "'s Turn");
+        String name = getNameFromStatus(status);
+        tvTitle.setText(name + "'s Turn");
 
         CustomDialogClickListener dcl = new CustomDialogClickListener(dialog);
         btnOk.setOnClickListener(dcl);
@@ -393,7 +438,7 @@ public class GameActivity extends AppCompatActivity {
         dialog.show();
     }
 
-    public void showStartDialog(String str)
+    public void showStartDialog(String status)
     {
         // Toast.makeText(this, "Custom", Toast.LENGTH_LONG).show();
         final Dialog dialog = new Dialog(this);
@@ -403,7 +448,8 @@ public class GameActivity extends AppCompatActivity {
         Button btnYes = dialog.findViewById(R.id.btnAcceptTurns);
         TextView tvTitle = dialog.findViewById(R.id.tvTitle);
 
-        tvTitle.setText(str + " Starts");
+        String name = getNameFromStatus(status);
+        tvTitle.setText(name + " Starts");
 
         CustomDialogClickListener dcl = new CustomDialogClickListener(dialog);
         btnYes.setOnClickListener(dcl);
@@ -411,7 +457,7 @@ public class GameActivity extends AppCompatActivity {
         dialog.show();
     }
 
-    public void showContinueDialog(String str)
+    public void showContinueDialog(String status)
     {
         // Toast.makeText(this, "Custom", Toast.LENGTH_LONG).show();
         final Dialog dialog = new Dialog(this);
@@ -421,7 +467,8 @@ public class GameActivity extends AppCompatActivity {
         Button btnContinue = dialog.findViewById(R.id.btnContinueGame);
         TextView tvTitle = dialog.findViewById(R.id.tvTitle);
 
-        tvTitle.setText(str + "'s Turn");
+        String name = getNameFromStatus(status);
+        tvTitle.setText(name + "'s Turn");
 
         CustomDialogClickListener dcl = new CustomDialogClickListener(dialog);
         btnContinue.setOnClickListener(dcl);
@@ -429,7 +476,7 @@ public class GameActivity extends AppCompatActivity {
         dialog.show();
     }
 
-    public void showChangeColorDialog(String str)
+    public void showChangeColorDialog(String status)
     {
         // Toast.makeText(this, "Custom", Toast.LENGTH_LONG).show();
         final Dialog dialog = new Dialog(this);
@@ -442,7 +489,8 @@ public class GameActivity extends AppCompatActivity {
         Button btnGreen = dialog.findViewById(R.id.btnGreen);
         TextView tvTitle = dialog.findViewById(R.id.tvTitle);
 
-        tvTitle.setText(str + "'s Turn");
+        String name = getNameFromStatus(status);
+        tvTitle.setText(name + "'s Turn");
 
         CustomDialogClickListener dcl = new CustomDialogClickListener(dialog);
         btnRed.setOnClickListener(dcl);
@@ -466,10 +514,12 @@ public class GameActivity extends AppCompatActivity {
         ImageView imgCard = dialog.findViewById(R.id.imgCard);
 
         if(gm.getGameStatus().equals("Player1")){
-            tvTitle.setText("Player2" + "'s Turn");
+            String name = getNameFromStatus("Player1");
+            tvTitle.setText(name + "'s Turn");
         }
         else{
-            tvTitle.setText("Player1" + "'s Turn");
+            String name = getNameFromStatus("Player2");
+            tvTitle.setText(name + "'s Turn");
         }
         imgCard.setImageResource(card.calcFaceDrawableId(this));
 
@@ -480,7 +530,7 @@ public class GameActivity extends AppCompatActivity {
         dialog.show();
     }
 
-    public void showWinDialog(String str)
+    public void showWinDialog(String status)
     {
         // Toast.makeText(this, "Custom", Toast.LENGTH_LONG).show();
         final Dialog dialog = new Dialog(this);
@@ -490,12 +540,21 @@ public class GameActivity extends AppCompatActivity {
         Button btnEndScreen = dialog.findViewById(R.id.btnEndScreenFromWin);
         TextView tvTitle = dialog.findViewById(R.id.tvTitle);
 
-        tvTitle.setText(str + " Won !");
+        String name = getNameFromStatus(status);
+
+        tvTitle.setText(name + " Won !");
 
         CustomDialogClickListener dcl = new CustomDialogClickListener(dialog);
         btnEndScreen.setOnClickListener(dcl);
 
         dialog.show();
+    }
+
+    public String getNameFromStatus(String str){
+        if(str.equals("Player1")){
+            return gm.getPlayer1Name();
+        }
+        return gm.getPlayer2Name();
     }
 
     public void moveToEndScreen(){

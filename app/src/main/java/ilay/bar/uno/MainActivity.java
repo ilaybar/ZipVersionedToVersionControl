@@ -35,18 +35,14 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
     ArrayList<Player> players;
 
-    private final String PlayersKey = "artistsStr";
-    private final String PrefName = "MyPrefs";
     private SharedPreferences pref;
     private SharedPreferences.Editor editor;
 
     private void initData()
     {
         players = new ArrayList<Player>();
-        players.add(new Player("Paul", this));
-        players.add(new Player("John", this));
-        players.add(new Player("George", this));
-        players.add(new Player("Ringo", this));
+        players.add(new Player("Guest1"));
+        players.add(new Player("Guest2"));
     }
 
     @Override
@@ -83,7 +79,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             }
             else if (id == R.id.btnCreateUser){
                 reply = "User Created !";
-                players.add(new Player(edt.getText().toString(), MainActivity.this));
+                players.add(new Player(edt.getText().toString()));
                 save();
                 btnCreateUser.setEnabled(true);
             }
@@ -121,10 +117,14 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         //
         initData();
 
-        pref = getSharedPreferences(PrefName, 0); // 0 - for private mode
+        pref = getSharedPreferences(Globals.PrefName, 0); // 0 - for private mode
         editor = pref.edit();
 
-        spinnerAdapter = new ArrayAdapter<Player>(this, R.layout.person_adapter2, R.id.tvFullName, players);
+        // In order to clear the players arraylist
+        // editor.clear();
+        // editor.commit();
+
+        spinnerAdapter = new ArrayAdapter<Player>(this, R.layout.player_adapter2, R.id.tvFullName, players);
 
         load();
         //
@@ -184,6 +184,10 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
     public void moveToGameActivity(View view){
         intent = new Intent(this, GameActivity.class);
+        int ind1 = spinnerPlayers1.getSelectedItemPosition();
+        int ind2 = spinnerPlayers2.getSelectedItemPosition();
+        intent.putExtra("Player1", ind1);
+        intent.putExtra("Player2", ind2);
         startActivity(intent);
     }
 
@@ -200,13 +204,13 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     public void save()
     {
         Toast.makeText(this, "Save", Toast.LENGTH_LONG).show();
-        PrefsUtils.writePlayersList(players, editor, PlayersKey);
+        PrefsUtils.writePlayersList(players, editor, Globals.PlayersKey);
     }
 
     public void load()
     {
         Toast.makeText(this, "Load", Toast.LENGTH_LONG).show();
-        ArrayList<Player> personArrList = PrefsUtils.readPlayersList(pref, PlayersKey);
+        ArrayList<Player> personArrList = PrefsUtils.readPlayersList(pref, Globals.PlayersKey);
         // copy new list to artists
         // since the adapter is tied to the artists ArrayList
         if (personArrList != null)

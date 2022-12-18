@@ -1,0 +1,158 @@
+@startuml
+class ilay.bar.uno.RecordsActivity {
+~ Intent intent
+~ TextView tvResult
+~ ListView lvPlayers
+~ MyArrayAdapter adapter
+~ ArrayList<Player> players
+- void initData()
+# void onCreate(Bundle)
++ boolean onOptionsItemSelected(MenuItem)
++ boolean onCreateOptionsMenu(Menu)
++ void endActivity(View)
++ void onItemClick(AdapterView<?>,View,int,long)
++ boolean onItemLongClick(AdapterView<?>,View,int,long)
++ void onItemSelected(AdapterView<?>,View,int,long)
++ void onNothingSelected(AdapterView<?>)
+}
+class ilay.bar.uno.Utils2 {
+~ {static} boolean handleMainMenu(MenuItem,Activity)
+}
+class ilay.bar.uno.InstructionsActivity {
+~ Intent intent
+~ GameManager gm
+# void onCreate(Bundle)
++ void homeButton(View)
+}
+abstract class ilay.bar.uno.Utils {
++ {static} String imgDir
++ {static} int string2drawbleId(Context,String)
++ {static} Bitmap stringDrawableBitmap(Context,String)
+}
+class ilay.bar.uno.Player {
+- String name
+- int wins
+- int drawableId
++ <<Create>> Player(String,int)
++ <<Create>> Player(String,Context)
++ String getName()
++ int getDrawableId()
++ int getWins()
++ void setWins(int)
++ int getLosses()
++ void setLosses(int)
++ int getPlayed()
++ void setPlayed(int)
++ String toString()
+}
+class ilay.bar.uno.EndActivity {
+~ Intent intent
+# void onCreate(Bundle)
++ boolean onOptionsItemSelected(MenuItem)
++ boolean onCreateOptionsMenu(Menu)
++ void playAgainButton(View)
++ void homeButton(View)
++ void recordsButton(View)
+}
+class ilay.bar.uno.CardAdapter {
+- Context context
+- ArrayList<Card> valuesList
++ <<Create>> CardAdapter(Context,ArrayList<Card>)
++ ViewHolder onCreateViewHolder(ViewGroup,int)
++ void onBindViewHolder(ViewHolder,int)
++ int getItemCount()
+}
+class ilay.bar.uno.CardAdapter.ViewHolder {
+- ImageView imgPhoto
++ <<Create>> ViewHolder(View)
+}
+class ilay.bar.uno.MainActivity {
+~ Intent intent
+~ Button moveToGameActivity
+~ Spinner spinnerPlayers1
+~ ArrayAdapter<Player> spinnerAdapter
+~ ArrayList<Player> players
+- String PlayersKey
+- String PrefName
+- SharedPreferences pref
+- SharedPreferences.Editor editor
+- void initData()
+# void onCreate(Bundle)
+- void showUserDialog()
++ void onItemClick(AdapterView<?>,View,int,long)
++ boolean onItemLongClick(AdapterView<?>,View,int,long)
++ boolean onOptionsItemSelected(MenuItem)
++ boolean onCreateOptionsMenu(Menu)
++ void gameModeChose(View)
++ void moveToGameActivity(View)
++ void onItemSelected(AdapterView<?>,View,int,long)
++ void onNothingSelected(AdapterView<?>)
++ void save()
++ void load()
+}
+class ilay.bar.uno.MainActivity.CustomDialogClickListener {
+~ Dialog dialog
++ <<Create>> CustomDialogClickListener(Dialog)
++ void onClick(View)
+}
+class ilay.bar.uno.RecyclerItemClickListener {
++ OnItemClickListener mListener
+~ GestureDetector mGestureDetector
++ <<Create>> RecyclerItemClickListener(Context,RecyclerView,OnItemClickListener)
++ boolean onInterceptTouchEvent(RecyclerView,MotionEvent)
++ void onTouchEvent(RecyclerView,MotionEvent)
++ void onRequestDisallowInterceptTouchEvent(boolean)
+}
+interface ilay.bar.uno.RecyclerItemClickListener.OnItemClickListener {
++ void onItemClick(View,int)
++ void onLongItemClick(View,int)
+}
+class ilay.bar.uno.PrefsUtils {
++ {static} void writePlayersList(ArrayList<Player>,SharedPreferences.Editor,String)
++ {static} ArrayList<Player> readPlayersList(SharedPreferences,String)
+}
+class ilay.bar.uno.SettingsActivity {
+~ Intent intent
+- MediaPlayer mp
+# void onCreate(Bundle)
++ void moveToHome(View)
++ void play(View)
++ void pause(View)
++ void stop(View)
++ void stopPlayer()
+# void onStop()
+}
+class ilay.bar.uno.MyArrayAdapter {
+- Context context
+- Player[] valuesArr
+- ArrayList<Player> valuesList
+~ TextView tvFirstName
+~ ImageView imgPhoto
++ <<Create>> MyArrayAdapter(Context,Player[])
++ <<Create>> MyArrayAdapter(Context,ArrayList<Player>)
++ View getView(int,View,ViewGroup)
+- void handleArray(int)
+- void handleArrayList(int)
+}
+
+
+ilay.bar.uno.OnItemClickListener <|.. ilay.bar.uno.RecordsActivity
+ilay.bar.uno.OnItemLongClickListener <|.. ilay.bar.uno.RecordsActivity
+ilay.bar.uno.OnItemSelectedListener <|.. ilay.bar.uno.RecordsActivity
+android.app.Activity <|-- ilay.bar.uno.RecordsActivity
+androidx.appcompat.app.AppCompatActivity <|-- ilay.bar.uno.InstructionsActivity
+androidx.appcompat.app.AppCompatActivity <|-- ilay.bar.uno.EndActivity
+ilay.bar.uno.Adapter <|-- ilay.bar.uno.CardAdapter
+ilay.bar.uno.CardAdapter +.. ilay.bar.uno.CardAdapter.ViewHolder
+ilay.bar.uno.ViewHolder <|-- ilay.bar.uno.CardAdapter.ViewHolder
+ilay.bar.uno.OnItemSelectedListener <|.. ilay.bar.uno.MainActivity
+ilay.bar.uno.OnItemLongClickListener <|.. ilay.bar.uno.MainActivity
+ilay.bar.uno.OnItemClickListener <|.. ilay.bar.uno.MainActivity
+androidx.appcompat.app.AppCompatActivity <|-- ilay.bar.uno.MainActivity
+ilay.bar.uno.MainActivity +.. ilay.bar.uno.MainActivity.CustomDialogClickListener
+ilay.bar.uno.OnClickListener <|.. ilay.bar.uno.MainActivity.CustomDialogClickListener
+ilay.bar.uno.OnItemTouchListener <|.. ilay.bar.uno.RecyclerItemClickListener
+ilay.bar.uno.RecyclerItemClickListener +.. ilay.bar.uno.RecyclerItemClickListener.OnItemClickListener
+androidx.appcompat.app.AppCompatActivity <|-- ilay.bar.uno.SettingsActivity
+android.widget.ArrayAdapter <|-- ilay.bar.uno.MyArrayAdapter
+@enduml

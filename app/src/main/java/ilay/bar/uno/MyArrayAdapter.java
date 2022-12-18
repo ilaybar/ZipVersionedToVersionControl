@@ -14,14 +14,14 @@ import java.util.ArrayList;
 // + http://theopentutorials.com/tutorials/android/listview/android-custom-listview-with-image-and-text-using-arrayadapter/
 public class MyArrayAdapter extends ArrayAdapter<Player>
 {
-	// This arrayb adapter handles *both* array & arraylist
+	// This array adapter handles *both* array & arraylist
 	// This is done for demo purposes only!
 	// Normally we will need just one of them
 	private final Context context;
 	private final Player[] valuesArr;
 	private final ArrayList<Player> valuesList;
 
-	TextView tvFirstName;
+	TextView tvFirstName, tvPlayed, tvWon, tvLost;
 	ImageView imgPhoto;
 
 	// Constructor for an array
@@ -33,7 +33,7 @@ public class MyArrayAdapter extends ArrayAdapter<Player>
 	 */
 	public MyArrayAdapter(Context _context, Player[] _values)
 	{
-		super(_context, R.layout.person_adapter, _values);
+		super(_context, R.layout.player_adapter, _values);
 		this.context = _context;
 		this.valuesArr = _values;
 		this.valuesList = null;
@@ -42,23 +42,25 @@ public class MyArrayAdapter extends ArrayAdapter<Player>
 	// Constructor for an ArrayList
 	public MyArrayAdapter(Context _context, ArrayList<Player> _valuesList)
 	{
-		super(_context, R.layout.person_adapter, _valuesList);
+		super(_context, R.layout.player_adapter, _valuesList);
 		this.context = _context;
 		this.valuesList = _valuesList;
 		this.valuesArr = null;
 	}
-
-
 
 	@Override
 	public View getView(int position, View convertView, ViewGroup parent)
 	{
 		LayoutInflater inflater = (LayoutInflater) context
 				.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-		View rowView = inflater.inflate(R.layout.person_adapter, parent, false);
+		View rowView = inflater.inflate(R.layout.player_adapter, parent, false);
 
 		tvFirstName = (TextView) rowView.findViewById(R.id.tvFirstName);
-		imgPhoto = (ImageView) rowView.findViewById(R.id.imgPhoto);
+		tvPlayed = (TextView) rowView.findViewById(R.id.tvPlayed);
+		tvWon = (TextView) rowView.findViewById(R.id.tvWon);
+		tvLost = (TextView) rowView.findViewById(R.id.tvLost);
+
+		ImageView imgPhoto = (ImageView) rowView.findViewById(R.id.imgPhoto);
 
 		if (valuesList == null)
 			handleArray(position);
@@ -72,13 +74,19 @@ public class MyArrayAdapter extends ArrayAdapter<Player>
 	private void handleArray(int position)
 	{
 		tvFirstName.setText(valuesArr[position].getName());
-		imgPhoto.setImageResource(valuesArr[position].getDrawableId());
+		tvPlayed.setText("Played: " + valuesArr[position].getPlayed());
+		tvWon.setText("Won: " + valuesArr[position].getWins());
+		tvLost.setText("Lost: " + valuesArr[position].getLosses());
+		// imgPhoto.setImageResource(valuesArr[position].getDrawableId());
 	}
 	
 	private void handleArrayList(int position)
 	{
 		tvFirstName.setText(valuesList.get(position).getName());
-		imgPhoto.setImageResource(valuesList.get(position).getDrawableId());
+		tvPlayed.setText("Played: " + valuesList.get(position).getPlayed());
+		tvWon.setText("Won: " + valuesList.get(position).getWins());
+		tvLost.setText("Lost: " + valuesList.get(position).getLosses());
+		// imgPhoto.setImageResource(players.get(position).getDrawableId());
 	}
 
 }

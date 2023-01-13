@@ -145,17 +145,18 @@ public class GameActivity extends AppCompatActivity {
         }
     }
 
+    // Card Click
     private class ItemClickListener implements RecyclerItemClickListener.OnItemClickListener
     {
         @Override
         public void onItemClick(View view, int position)
         {
             if(gm.isCardUsable(myCards.get(position)) && gm.canUseCards()){
-                Toast.makeText(getApplicationContext(), "Can Be Used: " + myCards.get(position), Toast.LENGTH_LONG / 2).show();
+                //Toast.makeText(getApplicationContext(), "Can Be Used: " + myCards.get(position), Toast.LENGTH_LONG / 2).show();
                 gm.useCard(position);
             }
             else{
-                Toast.makeText(getApplicationContext(), "Can't Be Used: " + myCards.get(position), Toast.LENGTH_LONG / 2).show();
+                //Toast.makeText(getApplicationContext(), "Can't Be Used: " + myCards.get(position), Toast.LENGTH_LONG / 2).show();
             }
             // tvSelected.setText(myCards.get(position).toString());
         }
@@ -185,27 +186,31 @@ public class GameActivity extends AppCompatActivity {
         gameStatus.setText(name + ": Take 2 Cards !");
     }
 
-    public void takeFourCards(){
-        String name = getNameFromStatus(gm.getGameStatus());
-        gameStatus.setText(name + ": Take 4 Cards !");
+    public void takeFourOrSixCards(){
+        String name = gm.getPlusStatus().toString();
+        if(gm.getPlusStatus().equals("Plus4")){
+            gameStatus.setText(name + ": Take 4 Cards !");
+        }
+        else{
+            gameStatus.setText(name + ": Take 6 Cards !");
+        }
     }
 
-    public void takeSixCards(){
-        String name = getNameFromStatus(gm.getGameStatus());
-        gameStatus.setText(name + ": Take 6 Cards !");
-    }
-
-    // TODO: add a thing for plus4
     public void deckClick(View view){
         boolean flag = false;
         Card card = gm.getPileTop();
         String str = card.getValueName();
         String nextPlayer = "";
+        int mode = 0;
+        if(str.equals("Plus2") || str.equals("Plus4") || str.equals("Plus6")){
+            str = "Plus";
+            mode = Integer.parseInt(String.valueOf(gm.getPlusStatus().toString().charAt(4)));
+        }
         switch (str){
-            case "Plus2":
+            case "Plus":
                 if(gm.getGameStatus().equals("Player1") && gm.getDeckSize() > 0){
                     if(!gm.canUseCards()){
-                        gm.takeCardFromDeck(gm.getPlayer1Hand(), 2);
+                        gm.takeCardFromDeck(gm.getPlayer1Hand(), mode);
                     }
                     else{
                         gm.takeCardFromDeck(gm.getPlayer1Hand(), 1);
@@ -218,7 +223,7 @@ public class GameActivity extends AppCompatActivity {
                 }
                 else{
                     if(!gm.canUseCards()){
-                        gm.takeCardFromDeck(gm.getPlayer2Hand(), 2);
+                        gm.takeCardFromDeck(gm.getPlayer2Hand(), mode);
                     }
                     else{
                         gm.takeCardFromDeck(gm.getPlayer2Hand(), 1);
@@ -229,9 +234,6 @@ public class GameActivity extends AppCompatActivity {
                     }
                     nextPlayer = "Player1";
                 }
-                gm.setCanUseCards(true);
-                break;
-            case "Plus4":
                 gm.setCanUseCards(true);
                 break;
             default:
@@ -324,14 +326,11 @@ public class GameActivity extends AppCompatActivity {
             if (id == R.id.btnYes){
                 reply = "Yes";
                 if(gm.getGameStatus().equals("Player2")){
-                    Log.d("TAG", "player1's Cards: " + gm.getPlayer1Hand());
-                    gm.playerChallenge(true, gm.hasMove(gm.getPlayer1Hand().getCardsArray()));
+                    gm.playerChallenge(true, gm.hadMove(gm.getPlayer1Hand().getCardsArray()));
                 }
                 else{
-                    Log.d("TAG", "player2's Cards: " + gm.getPlayer2Hand());
-                    gm.playerChallenge(true, gm.hasMove(gm.getPlayer2Hand().getCardsArray()));
+                    gm.playerChallenge(true, gm.hadMove(gm.getPlayer2Hand().getCardsArray()));
                 }
-                Log.d("TAG", "PileTop: " + gm.getPileTop());
             }
             else if(id == R.id.btnNo){
                 reply = "No";

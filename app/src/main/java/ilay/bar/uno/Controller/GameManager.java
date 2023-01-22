@@ -5,6 +5,8 @@ import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
+import java.util.ListIterator;
 
 import ilay.bar.uno.Globals;
 import ilay.bar.uno.Model.Card;
@@ -45,16 +47,16 @@ public class GameManager {
         pile = new Pile();
 
         player1Hand = new Hand();
-        player1Hand.setCardsArray(deck.getUserCards());
-        /*
+        // player1Hand.setCardsArray(deck.getUserCards());
+        // /*
         player1Hand.addCard(new Card(Card.Colors.green, 12, true));
+        player1Hand.addCard(new Card(Card.Colors.red, 3, true));
+        player1Hand.addCard(new Card(Card.Colors.red, 4, true));
         player1Hand.addCard(new Card(Card.Colors.black, 13, true));
         player1Hand.addCard(new Card(Card.Colors.black, 13, true));
-        player1Hand.addCard(new Card(Card.Colors.black, 13, true));
-        player1Hand.addCard(new Card(Card.Colors.black, 13, true));
-        player1Hand.addCard(new Card(Card.Colors.black, 14, true));
+        player1Hand.addCard(new Card(Card.Colors.blue, 7, true));
         player1Hand.addCard(new Card(Card.Colors.yellow, 2, true));
-        */
+        // */
 
         player2Hand = new Hand();
         player2Hand.setCardsArray(deck.getUserCards());
@@ -258,6 +260,17 @@ public class GameManager {
         unoUI.changePileImg(pileTop);
     }
 
+    public void removeSpecialsInPile(){ // Removes Colorful ChangeColor and Plus4
+        ListIterator<Card> li = pile.getCardsArray().listIterator();
+        while (li.hasNext())
+        {
+            Card c = li.next();
+            if ((c.getValueName().equals("ChangeColor") || c.getValueName().equals("Plus4")) && !c.getColor().equals("Black")){
+                li.remove();
+            }
+        }
+    }
+
     public void hideBothHands(){
         for(int i = 0; i<player1Hand.getCardsArray().size(); i++){
             player1Hand.getCardsArray().get(i).setFaceUp(false);
@@ -327,11 +340,19 @@ public class GameManager {
 
     public boolean hadMove(ArrayList<Card> array){
         boolean has = false;
-        Card card = pile.getCardsArray().get(pile.arraySize() - 2);
+        int plus4Counter = 0;
+        Card card = pile.getCardsArray().get(pile.arraySize() - 3);
         for (int i = 0; i < array.size(); i++){
-            if(array.get(i).getColor().equals(card.getColor()) || array.get(i).getValueName().equals(card.getValueName()) || array.get(i).getValueName().equals("ChangeColor") || array.get(i).getValueName().equals("Plus4")){
+            if(array.get(i).getColor().equals(card.getColor()) || array.get(i).getValueName().equals(card.getValueName()) || array.get(i).getValueName().equals("ChangeColor")){
                 has = true;
             }
+            else if(array.get(i).getValueName().equals("Plus4")){
+                plus4Counter++;
+            }
+        }
+        if(plus4Counter > 0){
+            Log.d("Plus4Counter", "counter: " + plus4Counter);
+            return false;
         }
         return has;
     }
@@ -432,10 +453,14 @@ public class GameManager {
 
     public void shufflePile(){
         pile.shuffleHand();
-        deck.setCardsArray(pile.getCardsArray());
-        while (pile.arraySize() > 0){
-            pile.removeFirst();
-        }
+    }
+
+    public Card getAndRemovePileBottom(){ // Removes The Bottom
+        return pile.getAndRemoveLast();
+    }
+
+    public void addCardToDeck(Card card){
+        deck.addCard(card);
     }
 
     public void addPileTop(Card card){

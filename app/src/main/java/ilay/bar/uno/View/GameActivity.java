@@ -8,11 +8,15 @@ import android.app.Dialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewTreeObserver;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -36,18 +40,23 @@ public class GameActivity extends AppCompatActivity {
 
     Intent intent;
     String gameMode, player1Name, player2Name;
-    ImageView unoImage, pileImg, deckImg;
+    ImageView unoImage, pileImg, deckImg, movingCard;
     int player1Index, player2Index;
+
+    private	MyHandler hndlr;
+    private MoveCardThread moveCardThread;
+    int screenCenterX, screenCenterY, movingCardX, movingCardY, pileImgX, pileImgY;
 
     // RecyclerView
     TextView tvSelected, gameStatus;
     RecyclerView rclvMyCards, rclvOpponentCards;
     CardAdapter cardAdapterMyCards, cardAdapterOpponentCards;
-    ArrayList<Card> deck, myCards, opponentCards, pile;
+    ArrayList<Card> myCards, opponentCards;
 
     ArrayList<Player> players;
     private SharedPreferences pref;
     private SharedPreferences.Editor editor;
+    int pos;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,18 +67,20 @@ public class GameActivity extends AppCompatActivity {
         player1Index = mainActivityIntent.getIntExtra("Player1", 0);
         player2Index = mainActivityIntent.getIntExtra("Player2", 0);
 
-        pileImg = findViewById(R.id.imgPile);
         gameStatus = findViewById(R.id.tvGameStatus);
         deckImg = findViewById(R.id.imgDeck);
         deckImg.setOnClickListener(this::deckClick);
 
+        pileImg = findViewById(R.id.imgPile);
+
+        movingCard = findViewById(R.id.movingCard);
+        movingCard.setVisibility(View.INVISIBLE);
+
         gm = new GameManager(this);
         gm.setPlayer1Index(player1Index);
         gm.setPlayer2Index(player2Index);
-        deck = gm.getDeck().getCardsArray();
         myCards = gm.getPlayer1Hand().getCardsArray();
         opponentCards = gm.getPlayer2Hand().getCardsArray();
-        pile = gm.getPile().getCardsArray();
 
         intent = new Intent();
         gameMode = intent.getStringExtra("GameMode");
@@ -78,7 +89,7 @@ public class GameActivity extends AppCompatActivity {
         unoImage = findViewById(R.id.imgUno);
         unoImage.setEnabled(false);
 
-        tvSelected = (TextView) findViewById(R.id.tvSelected);
+        // tvSelected = (TextView) findViewById(R.id.tvSelected);
 
         ItemClickListener itemClickListener = new ItemClickListener();
 
@@ -105,7 +116,32 @@ public class GameActivity extends AppCompatActivity {
         gm.setPlayer2Index(player2Index);
         gm.setPlayer2Name(players.get(player2Index).getName());
         gm.setPlayers(players);
-        gm.newGame();
+        gm.newGame(); // start game
+        movingCard.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+            @Override
+            public void onGlobalLayout() {
+                setCoords();
+            }
+        });
+        hndlr = new MyHandler();
+
+        // screenCenterX = (this.getResources().getDisplayMetrics().widthPixels) / 2;
+        // screenCenterY = (this.getResources().getDisplayMetrics().heightPixels) / 2;
+    }
+
+    private void setCoords()
+    {
+        // TODO: add the pile cords also
+        int[] pileImg_coordinates = new int[2];
+        pileImg.getLocationOnScreen(pileImg_coordinates);
+        pileImgX = pileImg_coordinates[0];
+        pileImgY = pileImg_coordinates[1];
+
+        int[] movingCard_coordinates = new int[2];
+        movingCard.getLocationOnScreen(movingCard_coordinates);
+        movingCardX = movingCard_coordinates[0];  // + movingCard.getWidth()/2.0;
+        movingCardY = movingCard_coordinates[1]; // + movingCard.getWidth()/2.0;
+
     }
 
     public void updateGamesStatusText(String str){
@@ -153,7 +189,13 @@ public class GameActivity extends AppCompatActivity {
         {
             if(gm.isCardUsable(myCards.get(position)) && gm.canUseCards()){
                 //Toast.makeText(getApplicationContext(), "Can Be Used: " + myCards.get(position), Toast.LENGTH_LONG / 2).show();
-                gm.useCard(position);
+                Card card = myCards.get(position);
+
+                // TODO: move an invisible photo from the center to the center
+                movingCard.setVisibility(View.VISIBLE);
+                moveCardThread = new MoveCardThread();
+                moveCardThread.start();
+                pos = position;
             }
             else{
                 //Toast.makeText(getApplicationContext(), "Can't Be Used: " + myCards.get(position), Toast.LENGTH_LONG / 2).show();
@@ -201,10 +243,19 @@ public class GameActivity extends AppCompatActivity {
         Card card = gm.getPileTop();
         String str = card.getValueName();
         String nextPlayer = "";
-        int mode = 0;
+        int mode = 1;
         if(str.equals("Plus2") || str.equals("Plus4") || str.equals("Plus6")){
             str = "Plus";
             mode = Integer.parseInt(String.valueOf(gm.getPlusStatus().toString().charAt(4)));
+        }
+        if(gm.getDeckSize() <= mode){
+            Card topCard = gm.removePileTop();
+            gm.removeSpecialsInPile();
+            gm.shufflePile();
+            while(gm.getPile().arraySize() > 0){
+                gm.addCardToDeck(gm.getAndRemovePileBottom());
+            }
+            gm.addPileTop(topCard);
         }
         switch (str){
             case "Plus":
@@ -213,7 +264,7 @@ public class GameActivity extends AppCompatActivity {
                         gm.takeCardFromDeck(gm.getPlayer1Hand(), mode);
                     }
                     else{
-                        gm.takeCardFromDeck(gm.getPlayer1Hand(), 1);
+                        gm.takeCardFromDeck(gm.getPlayer1Hand(), 1); //1
                         Card card1 = gm.getPlayer1Hand().getCardsArray().get(gm.getPlayer1Hand().arraySize() - 1);
                         if(gm.isCardUsable(card1)){
                             flag = true;
@@ -226,7 +277,7 @@ public class GameActivity extends AppCompatActivity {
                         gm.takeCardFromDeck(gm.getPlayer2Hand(), mode);
                     }
                     else{
-                        gm.takeCardFromDeck(gm.getPlayer2Hand(), 1);
+                        gm.takeCardFromDeck(gm.getPlayer2Hand(), 1); //1
                         Card card1 = gm.getPlayer2Hand().getCardsArray().get(gm.getPlayer2Hand().arraySize() - 1);
                         if(gm.isCardUsable(card1)){
                             flag = true;
@@ -237,8 +288,9 @@ public class GameActivity extends AppCompatActivity {
                 gm.setCanUseCards(true);
                 break;
             default:
+                Log.d("NoCards", "Deck Size (New): " + gm.getDeckSize());
                 if(gm.getGameStatus().equals("Player1") && gm.getDeckSize() > 0){
-                    gm.takeCardFromDeck(gm.getPlayer1Hand(), 1);
+                    gm.takeCardFromDeck(gm.getPlayer1Hand(), 1); //1
                     Card card1 = gm.getPlayer1Hand().getCardsArray().get(gm.getPlayer1Hand().arraySize() - 1);
                     if(gm.isCardUsable(card1)){
                         flag = true;
@@ -246,7 +298,7 @@ public class GameActivity extends AppCompatActivity {
                     nextPlayer = "Player2";
                 }
                 else if(gm.getGameStatus().equals("Player2") && gm.getDeckSize() > 0){
-                    gm.takeCardFromDeck(gm.getPlayer2Hand(), 1);
+                    gm.takeCardFromDeck(gm.getPlayer2Hand(), 1); //1
                     Card card1 = gm.getPlayer2Hand().getCardsArray().get(gm.getPlayer2Hand().arraySize() - 1);
                     if(gm.isCardUsable(card1)){
                         flag = true;
@@ -255,13 +307,6 @@ public class GameActivity extends AppCompatActivity {
                 }
                 break;
         }
-        // TODO: this doesn't work for some reason, it's important to fix it.
-        /*
-        if(gm.getDeckSize() == 0) {
-            Card card = gm.removePileTop();
-            gm.shufflePile();
-            gm.addPileTop(card);
-        }*/
         gm.setGameStatus(nextPlayer);
         gm.hideBothHands();
         gm.updateRecyclerViews();
@@ -560,5 +605,74 @@ public class GameActivity extends AppCompatActivity {
         Intent intent = new Intent(this, EndActivity.class);
         startActivity(intent);
     }
+
+    private class MyHandler extends Handler
+    {
+
+        @Override
+        public void handleMessage(Message msg)
+        {
+            Bundle data = msg.getData();
+            int counter = data.getInt("count");
+            int[] arr = data.getIntArray("arr");
+            movingCard.setX(arr[0]);
+            movingCard.setY(arr[1]);
+            // update the Timer TextView
+            // tvTimer.setText("" + count);
+            Log.d("count", "handleMessage: " + counter);
+            if (counter == 30)
+            {
+                movingCard.setVisibility(View.INVISIBLE);
+                gm.useCard(pos);
+            // btnStart.setEnabled(true);
+            }
+        } // handleMessage(...)
+
+    } // class MyHandler
+
+
+    public class MoveCardThread extends Thread
+    {
+        private int x, y;
+        private int interval = 32; // "sleep" interval in milisec
+
+        public MoveCardThread()
+        {
+            // TODO: before thread, move movingCard to corner of RecyclerView
+            this.x = movingCardX;
+            this.y = movingCardY;
+        }
+
+        public void run()
+        {
+            int counter = 0, xPos = x, yPos = y;
+            int dx = (pileImgX - x) / 30;
+            int dy = (pileImgY - y) / 30;
+            while (counter <= 30)
+            {
+                try
+                {
+                    xPos += dx;
+                    yPos += dy;
+                    Thread.sleep(interval);
+                } catch (InterruptedException ex)
+                {
+                    ex.printStackTrace();
+                }  // catch
+                counter++;
+                sendCounter2Activity(xPos, yPos, counter);
+            } // while
+        } // run()
+
+        private void sendCounter2Activity(int xPos, int yPos, int counter)
+        {
+            Message msg = hndlr.obtainMessage();
+            Bundle data = msg.getData();
+            data.putInt("counter", counter);
+            int[] arr = {xPos, yPos};
+            data.putIntArray("arr", arr);
+            hndlr.sendMessage(msg);
+        }
+    } // Class PrintCharThread
 
 }

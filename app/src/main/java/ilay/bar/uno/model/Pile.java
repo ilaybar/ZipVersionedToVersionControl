@@ -12,4 +12,9 @@ public class Pile extends Hand{
         return super.cardsArray.get(super.arraySize() - 1);
     }
 
+    public Card getAndRemoveLast(){
+        Card card = removeSpecific(0);
+        return card;
+    }
+
 }

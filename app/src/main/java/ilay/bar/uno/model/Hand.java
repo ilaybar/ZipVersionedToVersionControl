@@ -46,7 +46,6 @@ public class Hand {
     }
 
     public Card removeSpecific(int pos){
-        Log.d("Game", "removeSpecificInPos: " + pos);
         return cardsArray.remove(pos);
     }
 

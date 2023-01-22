@@ -10,7 +10,7 @@ import ilay.bar.uno.Utils;
 public class Card
 {
 
-    public enum Colors { blue, green, red, yellow, black};
+    public enum Colors {blue, green, red, yellow, black};
 
     // properties
     private Colors color; //Blue, Green, Red, Yellow, Black (Special cards)

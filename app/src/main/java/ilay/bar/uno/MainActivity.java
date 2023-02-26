@@ -40,9 +40,16 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
     private void initData()
     {
-        players = new ArrayList<Player>();
-        players.add(new Player("Guest1"));
-        players.add(new Player("Guest2"));
+        pref = getSharedPreferences(Globals.PrefName, 0); // 0 - for private mode
+        editor = pref.edit();
+        players = PrefsUtils.readPlayersList(pref, Globals.PlayersKey);
+        if (players == null) // first time we run it
+        {
+            players = new ArrayList<Player>();
+            players.add(new Player("Guest1"));
+            players.add(new Player("Guest2"));
+            PrefsUtils.writePlayersList(players, editor, Globals.PlayersKey);
+        }
     }
 
     @Override
@@ -136,6 +143,8 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         spinnerPlayers2.setAdapter(spinnerAdapter);
         spinnerPlayers2.setOnItemSelectedListener(this);
 
+        dialog.setCanceledOnTouchOutside(false);
+        dialog.setCancelable(false);
         dialog.show();
     }
 

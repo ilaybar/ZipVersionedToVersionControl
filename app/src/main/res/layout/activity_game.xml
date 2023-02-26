@@ -2,6 +2,7 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/gameLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/unobackground"
@@ -88,7 +89,8 @@
         app:layout_constraintBottom_toBottomOf="@+id/imgPile"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="@+id/imgPile"
-        app:srcCompat="@drawable/uno_back_of_card" />
+        app:srcCompat="@drawable/uno_back_of_card"
+        android:contentDescription="TODO" />
 
     <ImageView
         android:id="@+id/imgPile"
@@ -114,11 +116,13 @@
         android:id="@+id/movingCard"
         android:layout_width="90sp"
         android:layout_height="110sp"
-        android:layout_marginTop="470dp"
+        android:layout_marginTop="475dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.475"
         app:srcCompat="@drawable/blue_4" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

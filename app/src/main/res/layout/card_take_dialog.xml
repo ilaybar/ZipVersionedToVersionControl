@@ -22,7 +22,7 @@
         android:id="@+id/textView75"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_weight="0.5" />
+        android:layout_weight="0.1" />
 
     <TextView
         android:id="@+id/tvWouldYou"
@@ -39,12 +39,13 @@
         android:id="@+id/textView74"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_weight="0.5" />
+        android:layout_weight="0.1" />
 
     <ImageView
         android:id="@+id/imgCard"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_width="150dp"
+        android:layout_height="150dp"
+        android:layout_gravity="center"
         android:layout_weight="0.5"
         tools:srcCompat="@tools:sample/avatars" />
 
@@ -100,5 +101,11 @@
             android:layout_height="wrap_content"
             android:layout_weight="1" />
     </LinearLayout>
+
+    <TextView
+        android:id="@+id/textView9"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="0.5" />
 
 </LinearLayout>

@@ -1,22 +1,17 @@
 package ilay.bar.uno.Controller;
 
-import android.content.SharedPreferences;
 import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.ListIterator;
 
-import ilay.bar.uno.Globals;
 import ilay.bar.uno.Model.Card;
 import ilay.bar.uno.Model.Deck;
 import ilay.bar.uno.Model.Hand;
 import ilay.bar.uno.Model.Pile;
 import ilay.bar.uno.Player;
-import ilay.bar.uno.PrefsUtils;
 import ilay.bar.uno.View.GameActivity;
-import android.content.SharedPreferences;
 
 public class GameManager {
 
@@ -47,8 +42,8 @@ public class GameManager {
         pile = new Pile();
 
         player1Hand = new Hand();
-        // player1Hand.setCardsArray(deck.getUserCards());
-        // /*
+        player1Hand.setCardsArray(deck.getUserCards());
+        /*
         player1Hand.addCard(new Card(Card.Colors.green, 12, true));
         player1Hand.addCard(new Card(Card.Colors.red, 3, true));
         player1Hand.addCard(new Card(Card.Colors.red, 4, true));
@@ -56,7 +51,7 @@ public class GameManager {
         player1Hand.addCard(new Card(Card.Colors.black, 13, true));
         player1Hand.addCard(new Card(Card.Colors.blue, 7, true));
         player1Hand.addCard(new Card(Card.Colors.yellow, 2, true));
-        // */
+        */
 
         player2Hand = new Hand();
         player2Hand.setCardsArray(deck.getUserCards());
@@ -80,7 +75,7 @@ public class GameManager {
 
         hideBothHands();
         checkStartingCase();
-        updateGameStatus();
+        updateGameStatusText();
     }
 
     public void checkWin(){
@@ -96,6 +91,8 @@ public class GameManager {
             players.get(player1Index).addLose();
             unoUI.showWinDialog("Player2");
         }
+        // TODO: check if it saves them in the records table
+        // unoUI.playersListUpdate(players);
     }
 
     public void useCard(int pos){
@@ -120,13 +117,13 @@ public class GameManager {
                 unoUI.showChangeColorDialog(gameStatus.toString()); // show dialog
                 updateRecyclerViews();
                 setGameStatus(gameStatusSave);
-                updateGameStatus();
+                updateGameStatusText();
                 break;
             case "Plus2":
                 setGameStatus(gameStatusSave);
                 hideBothHands();
                 updateRecyclerViews();
-                updateGameStatus();
+                updateGameStatusText();
                 unoUI.showPlusTwoDialog(gameStatus.toString());
                 topIsPlus2();
                 break;
@@ -148,7 +145,7 @@ public class GameManager {
                 setGameStatus(gameStatusSave);
                 hideBothHands();
                 updateRecyclerViews();
-                updateGameStatus();
+                updateGameStatusText();
                 unoUI.showContinueDialog(gameStatusSave);
                 handNoMove();
         }
@@ -163,14 +160,10 @@ public class GameManager {
     }
 
     public void logDFunction(){
-        Log.d("Game", "Player Turn: " + gameStatus.toString());
+        Log.d("Game", "Turn: " + gameStatus.toString());
         Log.d("Game", "Player1Hand: " + player1Hand.toString());
         Log.d("Game", "Player2Hand: " + player2Hand.toString());
-        Log.d("Game", "");
-        Log.d("Game", "myCards: " + unoUI.getMyCards());
-        Log.d("Game", "OpponentCards: " + unoUI.getOpponentCards());
-        Log.d("Game", "");
-        Log.d("Game", "Pile: " + pile.toString());
+        Log.d("Game", "PileTop: " + pile.getFirst());
         Log.d("Game", "-----------------------------------");
     }
 
@@ -190,7 +183,7 @@ public class GameManager {
         return card.getValueName().equals(getPileTop().getValueName()) || card.getColor().equals(getPileTop().getColor());
     }
 
-    public void updateGameStatus(){
+    public void updateGameStatusText(){
         if(gameStatus.equals(GameStatus.Player1)){
             unoUI.updateGamesStatusText(player1Name);
         }
@@ -495,4 +488,5 @@ public class GameManager {
         }
         unoUI.takeFourOrSixCards();
     }
+
 }

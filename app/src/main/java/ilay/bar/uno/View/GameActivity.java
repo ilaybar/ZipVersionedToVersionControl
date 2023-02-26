@@ -1,16 +1,22 @@
 package ilay.bar.uno.View;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.app.Dialog;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.net.NetworkInfo;
+import android.net.wifi.WifiManager;
+import android.os.BatteryManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -47,11 +53,14 @@ public class GameActivity extends AppCompatActivity {
     private MoveCardThread moveCardThread;
     int screenCenterX, screenCenterY, movingCardX, movingCardY, pileImgX, pileImgY;
 
+    private BroadcastReceiver mReceiver;
+
     // RecyclerView
     TextView tvSelected, gameStatus;
     RecyclerView rclvMyCards, rclvOpponentCards;
     CardAdapter cardAdapterMyCards, cardAdapterOpponentCards;
     ArrayList<Card> myCards, opponentCards;
+    ConstraintLayout gameLayout;
 
     ArrayList<Player> players;
     private SharedPreferences pref;
@@ -63,87 +72,101 @@ public class GameActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_game);
 
+        // findViewByIds
+        gameStatus = findViewById(R.id.tvGameStatus);
+        deckImg = findViewById(R.id.imgDeck);
+        pileImg = findViewById(R.id.imgPile);
+        movingCard = findViewById(R.id.movingCard);
+        unoImage = findViewById(R.id.imgUno);
+        rclvMyCards = (RecyclerView) findViewById(R.id.rclvMyCards);
+        rclvOpponentCards = (RecyclerView) findViewById(R.id.rclvEnemyCards);
+        gameLayout = findViewById(R.id.gameLayout);
+
+        // Set cords of pileImg and movingCard after the whole layout build is done
+        gameLayout.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+            @Override
+            public void onGlobalLayout() {
+                setCords();
+            }
+        });
+
+        // Get players indexes from mainActivity's spinners
         Intent mainActivityIntent = getIntent();
         player1Index = mainActivityIntent.getIntExtra("Player1", 0);
         player2Index = mainActivityIntent.getIntExtra("Player2", 0);
+        intent = new Intent();
+        gameMode = intent.getStringExtra("GameMode");
+        player1Name = intent.getStringExtra("Player1Name");
+        player2Name = intent.getStringExtra("Player2Name");
 
-        gameStatus = findViewById(R.id.tvGameStatus);
-        deckImg = findViewById(R.id.imgDeck);
-        deckImg.setOnClickListener(this::deckClick);
-
-        pileImg = findViewById(R.id.imgPile);
-
-        movingCard = findViewById(R.id.movingCard);
-        movingCard.setVisibility(View.INVISIBLE);
-
+        // Hands Initialization
         gm = new GameManager(this);
         gm.setPlayer1Index(player1Index);
         gm.setPlayer2Index(player2Index);
         myCards = gm.getPlayer1Hand().getCardsArray();
         opponentCards = gm.getPlayer2Hand().getCardsArray();
 
-        intent = new Intent();
-        gameMode = intent.getStringExtra("GameMode");
-        player1Name = intent.getStringExtra("Player1Name");
-        player2Name = intent.getStringExtra("Player2Name");
-        unoImage = findViewById(R.id.imgUno);
+        // Traits Initialization
         unoImage.setEnabled(false);
+        deckImg.setOnClickListener(this::deckClick);
+        movingCard.setVisibility(View.INVISIBLE);
 
-        // tvSelected = (TextView) findViewById(R.id.tvSelected);
-
+        // Recycler views and card adapters
         ItemClickListener itemClickListener = new ItemClickListener();
-
         cardAdapterMyCards = new CardAdapter(this, myCards);
-        rclvMyCards = (RecyclerView) findViewById(R.id.rclvMyCards);
         rclvMyCards.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
         rclvMyCards.setAdapter(cardAdapterMyCards);
-
         cardAdapterOpponentCards = new CardAdapter(this, opponentCards);
-        rclvOpponentCards = (RecyclerView) findViewById(R.id.rclvEnemyCards);
         rclvOpponentCards.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
         rclvOpponentCards.setAdapter(cardAdapterOpponentCards);
-
+        // Recycler on click listener
         RecyclerItemClickListener hListener1 = new RecyclerItemClickListener(this, rclvMyCards, itemClickListener);
         rclvMyCards.addOnItemTouchListener(hListener1);
 
+        // Gets the players list from shared pref
         players = new ArrayList<>();
         pref = getSharedPreferences(Globals.PrefName, 0); // 0 - for private mode
         editor = pref.edit();
         players = PrefsUtils.readPlayersList(pref, Globals.PlayersKey);
 
+        // Sets players names in gm
         gm.setPlayer1Index(player1Index);
         gm.setPlayer1Name(players.get(player1Index).getName());
         gm.setPlayer2Index(player2Index);
         gm.setPlayer2Name(players.get(player2Index).getName());
         gm.setPlayers(players);
-        gm.newGame(); // start game
-        movingCard.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
-            @Override
-            public void onGlobalLayout() {
-                setCoords();
-            }
-        });
-        hndlr = new MyHandler();
+        gm.newGame(); // starts game
 
-        // screenCenterX = (this.getResources().getDisplayMetrics().widthPixels) / 2;
-        // screenCenterY = (this.getResources().getDisplayMetrics().heightPixels) / 2;
+        hndlr = new MyHandler(); // Handler
+
+        mReceiver = new MultiActionBroadcastReceiver(); // Multi Action Broadcast Receiver
     }
 
-    private void setCoords()
-    {
-        // TODO: add the pile cords also
+    // Initialize cords of movingCard and pileImg for animation
+    private void setCords() {
         int[] pileImg_coordinates = new int[2];
-        pileImg.getLocationOnScreen(pileImg_coordinates);
+        pileImg.getLocationInWindow(pileImg_coordinates); // pileImg.getLocationOnScreen(pileImg_coordinates);
         pileImgX = pileImg_coordinates[0];
-        pileImgY = pileImg_coordinates[1];
+        pileImgY = pileImg_coordinates[1] - pileImg.getWidth();
 
         int[] movingCard_coordinates = new int[2];
-        movingCard.getLocationOnScreen(movingCard_coordinates);
-        movingCardX = movingCard_coordinates[0];  // + movingCard.getWidth()/2.0;
-        movingCardY = movingCard_coordinates[1]; // + movingCard.getWidth()/2.0;
-
+        movingCard.getLocationInWindow(movingCard_coordinates); // movingCard.getLocationOnScreen(movingCard_coordinates);
+        movingCardX =  105; // movingCard_coordinates[0];
+        movingCardY = 1315; // movingCard_coordinates[1];
     }
 
+    public void playersListUpdate(ArrayList<Player> _players){
+        players = _players;
+        save();
+    }
+
+    public void save()
+    {
+        Toast.makeText(this, "Save", Toast.LENGTH_LONG).show();
+        PrefsUtils.writePlayersList(players, editor, Globals.PlayersKey);
+    }
+
+    // Game status text update
     public void updateGamesStatusText(String str){
         gameStatus.setText(str + "'s Turn");
     }
@@ -188,12 +211,18 @@ public class GameActivity extends AppCompatActivity {
         public void onItemClick(View view, int position)
         {
             if(gm.isCardUsable(myCards.get(position)) && gm.canUseCards()){
+                gm.logDFunction();
+                deckImg.setClickable(false);
+                rclvMyCards.setClickable(false);
                 //Toast.makeText(getApplicationContext(), "Can Be Used: " + myCards.get(position), Toast.LENGTH_LONG / 2).show();
                 Card card = myCards.get(position);
 
-                // TODO: move an invisible photo from the center to the center
+                movingCard.setX(movingCardX);
+                movingCard.setY(movingCardY);
+
+                movingCard.setImageResource(card.calcFaceDrawableId(GameActivity.this));
                 movingCard.setVisibility(View.VISIBLE);
-                moveCardThread = new MoveCardThread();
+                moveCardThread = new MoveCardThread(1);
                 moveCardThread.start();
                 pos = position;
             }
@@ -212,10 +241,6 @@ public class GameActivity extends AppCompatActivity {
 
     public void changePileImg(Card card){
         pileImg.setImageResource(card.calcFaceDrawableId(this));
-    }
-
-    public void setUnoButtonClickable(){
-        unoImage.setEnabled(true);
     }
 
     public void noCardsToPlay(){
@@ -239,6 +264,7 @@ public class GameActivity extends AppCompatActivity {
     }
 
     public void deckClick(View view){
+        gm.logDFunction();
         boolean flag = false;
         Card card = gm.getPileTop();
         String str = card.getValueName();
@@ -262,6 +288,7 @@ public class GameActivity extends AppCompatActivity {
                 if(gm.getGameStatus().equals("Player1") && gm.getDeckSize() > 0){
                     if(!gm.canUseCards()){
                         gm.takeCardFromDeck(gm.getPlayer1Hand(), mode);
+                        flag = false;
                     }
                     else{
                         gm.takeCardFromDeck(gm.getPlayer1Hand(), 1); //1
@@ -275,6 +302,7 @@ public class GameActivity extends AppCompatActivity {
                 else{
                     if(!gm.canUseCards()){
                         gm.takeCardFromDeck(gm.getPlayer2Hand(), mode);
+                        flag = false;
                     }
                     else{
                         gm.takeCardFromDeck(gm.getPlayer2Hand(), 1); //1
@@ -307,18 +335,40 @@ public class GameActivity extends AppCompatActivity {
                 }
                 break;
         }
+        // Take card from deck animation
+        movingCard.setX(deckImg.getX());
+        movingCard.setY(deckImg.getY());
+        Card cardBack = new Card(Card.Colors.black, 7, false);
+        movingCard.setImageResource(cardBack.calcFaceDrawableId(GameActivity.this));
+        movingCard.setVisibility(View.VISIBLE);
+        moveCardThread = new MoveCardThread(2);
+        moveCardThread.start();
+
+        // Move to next turn
         gm.setGameStatus(nextPlayer);
+        gm.updateGameStatusText();
+
+        // Can play the player's card he got from the deck
+        Log.d("Game", "deckClick (flag, nextPlayer.equals('Player1')): " + flag + ", " + nextPlayer.equals("Player1"));
+        Log.d("Game", "deckClick (flag, nextPlayer.equals('Player2')): " + flag + ", " + nextPlayer.equals("Player2"));
+        Card cardToBePlayed;
+        if(flag && gm.getGameStatus().equals("Player1")){
+            Card cardFromHand = gm.getPlayer2Hand().getCardsArray().get(gm.getPlayer2Hand().arraySize() - 1);
+            cardToBePlayed = new Card(cardFromHand.getColor(), cardFromHand.getValue(), true);
+            showCardTakeDialog(cardToBePlayed);
+        }
+        else if(flag && gm.getGameStatus().equals("Player2")){
+            Card cardFromHand = gm.getPlayer1Hand().getCardsArray().get(gm.getPlayer1Hand().arraySize() - 1);
+            cardToBePlayed = new Card(cardFromHand.getColor(), cardFromHand.getValue(), true);
+            showCardTakeDialog(cardToBePlayed);
+        }
+        else{
+            showContinueDialog(gm.getGameStatus());
+        }
+
+        // Move to next turn
         gm.hideBothHands();
         gm.updateRecyclerViews();
-        gm.updateGameStatus();
-        showContinueDialog(gm.getGameStatus());
-        /*
-        if(flag && gm.getGameStatus().equals("Player2")){
-            showCardTakeDialog(gm.getPlayer2Hand().getCardsArray().get(gm.getPlayer2Hand().arraySize() - 1));
-        }
-        else if(flag && gm.getGameStatus().equals("Player1")){
-            showCardTakeDialog(gm.getPlayer1Hand().getCardsArray().get(gm.getPlayer1Hand().arraySize() - 1));
-        }*/
     }
 
     @Override
@@ -367,7 +417,7 @@ public class GameActivity extends AppCompatActivity {
         public void onClick(View v)
         {
             int id = v.getId();
-            String reply;
+            String reply = "";
             if (id == R.id.btnYes){
                 reply = "Yes";
                 if(gm.getGameStatus().equals("Player2")){
@@ -391,18 +441,40 @@ public class GameActivity extends AppCompatActivity {
                 reply = "Continue Game";
                 updateRecyclerViews();
                 gm.showPlayingHand();
-                gm.logDFunction();
+                // gm.logDFunction();
                 gm.handNoMove();
             }
             else if(id == R.id.btnEndScreenFromWin){
                 reply = "A Player Won";
                 moveToEndScreen();
             }
+            // TODO: index out of bound, still need to fix the cardTakeDialog in the deck click
+            else if(id == R.id.btnPlayIt){
+                int lastIndex;
+                // Log.d("TAG", "onClick (gameStatus, size1, size2): " + gm.getGameStatus() + ", " + gm.getPlayer1Hand().arraySize() + ", " + gm.getPlayer2Hand().arraySize());
+                if(gm.getGameStatus().equals("Player2")){
+                    lastIndex = gm.getPlayer1Hand().getCardsArray().size() - 1;
+                    Log.d("game", "Index1, Size1: " + lastIndex + ", " + gm.getPlayer1Hand().arraySize());
+                    gm.setGameStatus("Player1");
+                }
+                else{
+                    lastIndex = gm.getPlayer2Hand().getCardsArray().size() - 1;
+                    Log.d("game", "Index2, Size2: " + lastIndex + ", " + gm.getPlayer2Hand().arraySize());
+                    gm.setGameStatus("Player2");
+                }
+                gm.updateGameStatusText();
+                gm.useCard(lastIndex);
+                gm.getPile().getFirst().setFaceUp(true);
+                changePileImg(gm.getPileTop());
+            }
+            else if(id == R.id.btnSaveIt){
+                showContinueDialog(gm.getGameStatus());
+            }
             else if(id == R.id.btnOk){
                 reply = "Plus 2";
                 updateRecyclerViews();
                 gm.showPlayingHand();
-                gm.logDFunction();
+                // gm.logDFunction();
                 gm.topIsPlus2();
             }
             else if(id == R.id.btnBlue || id == R.id.btnRed || id == R.id.btnGreen || id == R.id.btnYellow){
@@ -426,7 +498,7 @@ public class GameActivity extends AppCompatActivity {
                         break;
                 }
                 if(gm.getPileTop().getValueName().equals("Plus4")){
-                    gm.updateGameStatus();
+                    gm.updateGameStatusText();
                 }
                 updateRecyclerViews();
                 gm.showPlayingHand();
@@ -460,6 +532,8 @@ public class GameActivity extends AppCompatActivity {
         btnYes.setOnClickListener(dcl);
         btnNo.setOnClickListener(dcl);
 
+        dialog.setCanceledOnTouchOutside(false);
+        dialog.setCancelable(false);
         dialog.show();
     }
 
@@ -479,6 +553,8 @@ public class GameActivity extends AppCompatActivity {
         CustomDialogClickListener dcl = new CustomDialogClickListener(dialog);
         btnOk.setOnClickListener(dcl);
 
+        dialog.setCanceledOnTouchOutside(false);
+        dialog.setCancelable(false);
         dialog.show();
     }
 
@@ -498,6 +574,8 @@ public class GameActivity extends AppCompatActivity {
         CustomDialogClickListener dcl = new CustomDialogClickListener(dialog);
         btnYes.setOnClickListener(dcl);
 
+        dialog.setCanceledOnTouchOutside(false);
+        dialog.setCancelable(false);
         dialog.show();
     }
 
@@ -517,6 +595,8 @@ public class GameActivity extends AppCompatActivity {
         CustomDialogClickListener dcl = new CustomDialogClickListener(dialog);
         btnContinue.setOnClickListener(dcl);
 
+        dialog.setCanceledOnTouchOutside(false);
+        dialog.setCancelable(false);
         dialog.show();
     }
 
@@ -542,6 +622,8 @@ public class GameActivity extends AppCompatActivity {
         btnYellow.setOnClickListener(dcl);
         btnGreen.setOnClickListener(dcl);
 
+        dialog.setCanceledOnTouchOutside(false);
+        dialog.setCancelable(false);
         dialog.show();
     }
 
@@ -558,11 +640,11 @@ public class GameActivity extends AppCompatActivity {
         ImageView imgCard = dialog.findViewById(R.id.imgCard);
 
         if(gm.getGameStatus().equals("Player1")){
-            String name = getNameFromStatus("Player1");
+            String name = getNameFromStatus("Player2");
             tvTitle.setText(name + "'s Turn");
         }
         else{
-            String name = getNameFromStatus("Player2");
+            String name = getNameFromStatus("Player1");
             tvTitle.setText(name + "'s Turn");
         }
         imgCard.setImageResource(card.calcFaceDrawableId(this));
@@ -571,6 +653,8 @@ public class GameActivity extends AppCompatActivity {
         btnPlayIt.setOnClickListener(dcl);
         btnSaveIt.setOnClickListener(dcl);
 
+        dialog.setCanceledOnTouchOutside(false);
+        dialog.setCancelable(false);
         dialog.show();
     }
 
@@ -591,6 +675,8 @@ public class GameActivity extends AppCompatActivity {
         CustomDialogClickListener dcl = new CustomDialogClickListener(dialog);
         btnEndScreen.setOnClickListener(dcl);
 
+        dialog.setCanceledOnTouchOutside(false);
+        dialog.setCancelable(false);
         dialog.show();
     }
 
@@ -606,6 +692,55 @@ public class GameActivity extends AppCompatActivity {
         startActivity(intent);
     }
 
+    @Override
+    protected void onStart() {
+        IntentFilter filterBattery = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
+        IntentFilter filterWifi = new IntentFilter(WifiManager.NETWORK_STATE_CHANGED_ACTION);
+        registerReceiver(mReceiver, filterBattery);
+        registerReceiver(mReceiver, filterWifi);
+        super.onStart();
+    }
+
+    @Override
+    protected void onStop() {
+        unregisterReceiver(mReceiver);
+        super.onStop();
+    }
+
+    private class MultiActionBroadcastReceiver extends BroadcastReceiver {
+
+        private boolean showedToast = false;
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if(intent.getAction().equals("android.intent.action.BATTERY_CHANGED")){
+                int level = intent.getIntExtra(BatteryManager.EXTRA_LEVEL, 0);
+                if(level % 10 != 0 && level <= 70){
+                    showedToast = false;
+                }
+                if(level % 10 == 0 && level <= 70 && !showedToast){
+                    Toast.makeText(context, "Battery getting low", Toast.LENGTH_SHORT).show();
+                    showedToast = true;
+                }
+            }
+            else{
+                NetworkInfo info = intent.getParcelableExtra(WifiManager.EXTRA_NETWORK_INFO);
+                if (info != null && info.isConnected()) {
+                    Toast.makeText(context, "Connected to Wi-Fi", Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(context, "Disconnected from Wi-Fi", Toast.LENGTH_SHORT).show();
+                }
+            }
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        unregisterReceiver(mReceiver);
+    }
+
+
     private class MyHandler extends Handler
     {
 
@@ -613,18 +748,23 @@ public class GameActivity extends AppCompatActivity {
         public void handleMessage(Message msg)
         {
             Bundle data = msg.getData();
-            int counter = data.getInt("count");
+            int counter = data.getInt("counter");
             int[] arr = data.getIntArray("arr");
+            int mode = data.getInt("mode");
             movingCard.setX(arr[0]);
             movingCard.setY(arr[1]);
             // update the Timer TextView
             // tvTimer.setText("" + count);
-            Log.d("count", "handleMessage: " + counter);
             if (counter == 30)
             {
                 movingCard.setVisibility(View.INVISIBLE);
-                gm.useCard(pos);
-            // btnStart.setEnabled(true);
+                setCords();
+                if(mode == 1){
+                    gm.useCard(pos);
+                }
+                deckImg.setClickable(true);
+                rclvMyCards.setClickable(true);
+                // btnStart.setEnabled(true);
             }
         } // handleMessage(...)
 
@@ -635,42 +775,63 @@ public class GameActivity extends AppCompatActivity {
     {
         private int x, y;
         private int interval = 32; // "sleep" interval in milisec
+        private int mode = 1; // 1 - To Pile | 2 - To Hand
 
-        public MoveCardThread()
+        public MoveCardThread(int mode)
         {
-            // TODO: before thread, move movingCard to corner of RecyclerView
-            this.x = movingCardX;
-            this.y = movingCardY;
+            if(mode == 1){
+                this.x = movingCardX;
+                this.y = movingCardY;
+            }
+            else{
+                this.x = (int) deckImg.getX();
+                this.y = (int) deckImg.getY();
+            }
+            this.mode = mode;
         }
 
         public void run()
         {
-            int counter = 0, xPos = x, yPos = y;
-            int dx = (pileImgX - x) / 30;
-            int dy = (pileImgY - y) / 30;
+            int counter = 0, xPos = x, yPos = y, dx, dy;
+            if(mode == 1){
+                dx = (pileImgX - x) / 30;
+                dy = (pileImgY - y) / 30;
+            }
+            else{
+                dx = (x + 25) / 30;
+                dy = (y - movingCardY) / 30;
+            }
             while (counter <= 30)
             {
+                // Log.d("Pos", "run: X and Y pos (" + xPos + ", " + yPos + ")");
                 try
                 {
-                    xPos += dx;
-                    yPos += dy;
+                    if(mode == 1){
+                        xPos += dx;
+                        yPos += dy;
+                    }
+                    else{
+                        xPos -= dx;
+                        yPos -= dy;
+                    }
                     Thread.sleep(interval);
                 } catch (InterruptedException ex)
                 {
                     ex.printStackTrace();
                 }  // catch
                 counter++;
-                sendCounter2Activity(xPos, yPos, counter);
+                sendCounter2Activity(xPos, yPos, counter, mode);
             } // while
         } // run()
 
-        private void sendCounter2Activity(int xPos, int yPos, int counter)
+        private void sendCounter2Activity(int xPos, int yPos, int counter, int mode)
         {
             Message msg = hndlr.obtainMessage();
             Bundle data = msg.getData();
             data.putInt("counter", counter);
             int[] arr = {xPos, yPos};
             data.putIntArray("arr", arr);
+            data.putInt("mode", mode);
             hndlr.sendMessage(msg);
         }
     } // Class PrintCharThread

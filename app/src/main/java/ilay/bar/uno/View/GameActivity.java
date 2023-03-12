@@ -35,6 +35,7 @@ import ilay.bar.uno.Controller.GameManager;
 import ilay.bar.uno.EndActivity;
 import ilay.bar.uno.Globals;
 import ilay.bar.uno.Model.Card;
+import ilay.bar.uno.Model.Hand;
 import ilay.bar.uno.Player;
 import ilay.bar.uno.PrefsUtils;
 import ilay.bar.uno.R;
@@ -44,28 +45,29 @@ public class GameActivity extends AppCompatActivity {
 
     GameManager gm;
 
-    Intent intent;
-    String gameMode, player1Name, player2Name;
-    ImageView unoImage, pileImg, deckImg, movingCard;
-    int player1Index, player2Index;
-
-    private	MyHandler hndlr;
-    private MoveCardThread moveCardThread;
-    int screenCenterX, screenCenterY, movingCardX, movingCardY, pileImgX, pileImgY;
+    ConstraintLayout gameLayout;
 
     private BroadcastReceiver mReceiver;
 
+    ImageView unoImage, pileImg, deckImg, movingCard;
+
+    private	MyHandler handler; // Handler for animation thread
+    private AnimationThread movingCardThread; // Thread that moves cards (To pile / From deck)
+    int movingCardX, movingCardY, pileImgX, pileImgY;
+    int pos; // Pos in deck of card used in the animation
+
     // RecyclerView
-    TextView tvSelected, gameStatus;
+    TextView gameStatus;
     RecyclerView rclvMyCards, rclvOpponentCards;
     CardAdapter cardAdapterMyCards, cardAdapterOpponentCards;
     ArrayList<Card> myCards, opponentCards;
-    ConstraintLayout gameLayout;
 
+    // Shared Pref, editor and players arraylist
     ArrayList<Player> players;
     private SharedPreferences pref;
     private SharedPreferences.Editor editor;
-    int pos;
+
+    // TODO: go over the marks and problems and fix them
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -78,8 +80,8 @@ public class GameActivity extends AppCompatActivity {
         pileImg = findViewById(R.id.imgPile);
         movingCard = findViewById(R.id.movingCard);
         unoImage = findViewById(R.id.imgUno);
-        rclvMyCards = (RecyclerView) findViewById(R.id.rclvMyCards);
-        rclvOpponentCards = (RecyclerView) findViewById(R.id.rclvEnemyCards);
+        rclvMyCards = findViewById(R.id.rclvMyCards);
+        rclvOpponentCards = findViewById(R.id.rclvEnemyCards);
         gameLayout = findViewById(R.id.gameLayout);
 
         // Set cords of pileImg and movingCard after the whole layout build is done
@@ -92,12 +94,8 @@ public class GameActivity extends AppCompatActivity {
 
         // Get players indexes from mainActivity's spinners
         Intent mainActivityIntent = getIntent();
-        player1Index = mainActivityIntent.getIntExtra("Player1", 0);
-        player2Index = mainActivityIntent.getIntExtra("Player2", 0);
-        intent = new Intent();
-        gameMode = intent.getStringExtra("GameMode");
-        player1Name = intent.getStringExtra("Player1Name");
-        player2Name = intent.getStringExtra("Player2Name");
+        int player1Index = mainActivityIntent.getIntExtra("Player1", 0);
+        int player2Index = mainActivityIntent.getIntExtra("Player2", 0);
 
         // Hands Initialization
         gm = new GameManager(this);
@@ -135,9 +133,9 @@ public class GameActivity extends AppCompatActivity {
         gm.setPlayer2Index(player2Index);
         gm.setPlayer2Name(players.get(player2Index).getName());
         gm.setPlayers(players);
-        gm.newGame(); // starts game
+        gm.newGame(); // Starts the game
 
-        hndlr = new MyHandler(); // Handler
+        handler = new MyHandler(); // Handler
 
         mReceiver = new MultiActionBroadcastReceiver(); // Multi Action Broadcast Receiver
     }
@@ -155,11 +153,13 @@ public class GameActivity extends AppCompatActivity {
         movingCardY = 1315; // movingCard_coordinates[1];
     }
 
+    // Update players statistics as the game ends
     public void playersListUpdate(ArrayList<Player> _players){
         players = _players;
         save();
     }
 
+    // Save players arraylist in shared pref
     public void save()
     {
         Toast.makeText(this, "Save", Toast.LENGTH_LONG).show();
@@ -171,14 +171,52 @@ public class GameActivity extends AppCompatActivity {
         gameStatus.setText(str + "'s Turn");
     }
 
-    public ArrayList<Card> getMyCards() {
-        return myCards;
+    // Updates the top card image
+    public void changePileImg(Card card){
+        pileImg.setImageResource(card.calcFaceDrawableId(this));
     }
 
-    public ArrayList<Card> getOpponentCards() {
-        return opponentCards;
+    // Can or Cannot use the uno button
+    public void checkUnoImageClickable(Hand hand1, Hand hand2){
+        if(hand1.arraySize() <= 2 || hand2.arraySize() <= 2){
+            unoImage.setClickable(true);
+            Toast.makeText(getApplicationContext(), "Clickable, Can Use Uno", Toast.LENGTH_LONG).show();
+        }
+        else{
+            unoImage.setClickable(false);
+            Toast.makeText(getApplicationContext(), "Not Clickable, Can't Use Uno", Toast.LENGTH_LONG).show();
+        }
     }
 
+    // Provides the player's name from a string
+    public String getNameFromStatus(String str){
+        if(str.equals("Player1")){
+            return gm.getPlayer1Name();
+        }
+        return gm.getPlayer2Name();
+    }
+
+    // No cards text
+    public void noCardsToPlay(){
+        String name = getNameFromStatus(gm.getGameStatus());
+        gameStatus.setText(name + ": Take A Card !");
+    }
+
+    // Plus Cards Text Update
+    public void takePlusCards(){
+        String name = gm.getPlusStatus().toString();
+        if(gm.getPlusStatus().equals("Plus2")){
+            gameStatus.setText(name + ": Take 2 Cards !");
+        }
+        else if(gm.getPlusStatus().equals("Plus4")){
+            gameStatus.setText(name + ": Take 4 Cards !");
+        }
+        else{
+            gameStatus.setText(name + ": Take 6 Cards !");
+        }
+    }
+
+    // Sets the arraylist<Card> for bottom RecyclerView (Playing Hand)
     public void setMyCards(ArrayList<Card> arrayList){
         myCards = arrayList;
         cardAdapterMyCards = new CardAdapter(this, myCards);
@@ -186,6 +224,7 @@ public class GameActivity extends AppCompatActivity {
         rclvMyCards.setAdapter(cardAdapterMyCards);
     }
 
+    // Sets the arraylist<Card> for top RecyclerView (Non Playing Hand)
     public void setOpponentCards(ArrayList<Card> arrayList){
         opponentCards = arrayList;
         cardAdapterOpponentCards = new CardAdapter(this, opponentCards);
@@ -193,6 +232,7 @@ public class GameActivity extends AppCompatActivity {
         rclvOpponentCards.setAdapter(cardAdapterOpponentCards);
     }
 
+    // Switches between the hands presented in each RecyclerView
     public void updateRecyclerViews(){
         if(gm.getGameStatus().equals("Player1")){
             setMyCards(gm.getPlayer1Hand().getCardsArray());
@@ -204,14 +244,13 @@ public class GameActivity extends AppCompatActivity {
         }
     }
 
-    // Card Click
+    // Player Chose A Card (Clicked the playing hand RecyclerView)
     private class ItemClickListener implements RecyclerItemClickListener.OnItemClickListener
     {
         @Override
         public void onItemClick(View view, int position)
         {
             if(gm.isCardUsable(myCards.get(position)) && gm.canUseCards()){
-                gm.logDFunction();
                 deckImg.setClickable(false);
                 rclvMyCards.setClickable(false);
                 //Toast.makeText(getApplicationContext(), "Can Be Used: " + myCards.get(position), Toast.LENGTH_LONG / 2).show();
@@ -222,8 +261,8 @@ public class GameActivity extends AppCompatActivity {
 
                 movingCard.setImageResource(card.calcFaceDrawableId(GameActivity.this));
                 movingCard.setVisibility(View.VISIBLE);
-                moveCardThread = new MoveCardThread(1);
-                moveCardThread.start();
+                movingCardThread = new AnimationThread(1);
+                movingCardThread.start();
                 pos = position;
             }
             else{
@@ -239,32 +278,8 @@ public class GameActivity extends AppCompatActivity {
         }
     }
 
-    public void changePileImg(Card card){
-        pileImg.setImageResource(card.calcFaceDrawableId(this));
-    }
-
-    public void noCardsToPlay(){
-        String name = getNameFromStatus(gm.getGameStatus());
-        gameStatus.setText(name + ": Take A Card !");
-    }
-
-    public void takeTwoCards(){
-        String name = getNameFromStatus(gm.getGameStatus());
-        gameStatus.setText(name + ": Take 2 Cards !");
-    }
-
-    public void takeFourOrSixCards(){
-        String name = gm.getPlusStatus().toString();
-        if(gm.getPlusStatus().equals("Plus4")){
-            gameStatus.setText(name + ": Take 4 Cards !");
-        }
-        else{
-            gameStatus.setText(name + ": Take 6 Cards !");
-        }
-    }
-
+    // Player took a card/s
     public void deckClick(View view){
-        gm.logDFunction();
         boolean flag = false;
         Card card = gm.getPileTop();
         String str = card.getValueName();
@@ -341,16 +356,14 @@ public class GameActivity extends AppCompatActivity {
         Card cardBack = new Card(Card.Colors.black, 7, false);
         movingCard.setImageResource(cardBack.calcFaceDrawableId(GameActivity.this));
         movingCard.setVisibility(View.VISIBLE);
-        moveCardThread = new MoveCardThread(2);
-        moveCardThread.start();
+        movingCardThread = new AnimationThread(2);
+        movingCardThread.start();
 
         // Move to next turn
         gm.setGameStatus(nextPlayer);
         gm.updateGameStatusText();
 
         // Can play the player's card he got from the deck
-        Log.d("Game", "deckClick (flag, nextPlayer.equals('Player1')): " + flag + ", " + nextPlayer.equals("Player1"));
-        Log.d("Game", "deckClick (flag, nextPlayer.equals('Player2')): " + flag + ", " + nextPlayer.equals("Player2"));
         Card cardToBePlayed;
         if(flag && gm.getGameStatus().equals("Player1")){
             Card cardFromHand = gm.getPlayer2Hand().getCardsArray().get(gm.getPlayer2Hand().arraySize() - 1);
@@ -371,6 +384,7 @@ public class GameActivity extends AppCompatActivity {
         gm.updateRecyclerViews();
     }
 
+    // Game Menu
     @Override
     public boolean onOptionsItemSelected(MenuItem Item) {
         Intent myIntent = new Intent(this, EndActivity.class);
@@ -380,21 +394,11 @@ public class GameActivity extends AppCompatActivity {
             case R.id.item1:
                 startActivity(myIntent);
                 break;
-            case R.id.item2:
-                showStartDialog("Player1");
-                break;
-            case R.id.item3:
-                showContinueDialog("Player1");
-                break;
-            case R.id.item4:
-                showPlusFourDialog("Player1");
-                break;
-            case R.id.item5:
-                Toast.makeText(getApplicationContext(), "Saved", Toast.LENGTH_LONG).show();
         }
         return true;
     }
 
+    // Create Game Menu
     @Override
     public boolean onCreateOptionsMenu(Menu menu)
     {
@@ -404,22 +408,19 @@ public class GameActivity extends AppCompatActivity {
         return true;
     }
 
+    // Checks what button was pressed in the custom dialog, each button has a different goal
     private class CustomDialogClickListener implements View.OnClickListener
     {
         Dialog dialog;
-
         public CustomDialogClickListener(Dialog _dialog)
         {
             this.dialog = _dialog;
         }
-
         @Override
         public void onClick(View v)
         {
             int id = v.getId();
-            String reply = "";
             if (id == R.id.btnYes){
-                reply = "Yes";
                 if(gm.getGameStatus().equals("Player2")){
                     gm.playerChallenge(true, gm.hadMove(gm.getPlayer1Hand().getCardsArray()));
                 }
@@ -428,30 +429,23 @@ public class GameActivity extends AppCompatActivity {
                 }
             }
             else if(id == R.id.btnNo){
-                reply = "No";
                 gm.playerChallenge(false, false);
             }
             else if(id == R.id.btnAcceptTurns){
-                reply = "Accept Turns";
                 updateRecyclerViews();
                 gm.showPlayingHand();
                 gm.handNoMove();
             }
             else if(id == R.id.btnContinueGame){
-                reply = "Continue Game";
                 updateRecyclerViews();
                 gm.showPlayingHand();
-                // gm.logDFunction();
                 gm.handNoMove();
             }
             else if(id == R.id.btnEndScreenFromWin){
-                reply = "A Player Won";
                 moveToEndScreen();
             }
-            // TODO: index out of bound, still need to fix the cardTakeDialog in the deck click
             else if(id == R.id.btnPlayIt){
                 int lastIndex;
-                // Log.d("TAG", "onClick (gameStatus, size1, size2): " + gm.getGameStatus() + ", " + gm.getPlayer1Hand().arraySize() + ", " + gm.getPlayer2Hand().arraySize());
                 if(gm.getGameStatus().equals("Player2")){
                     lastIndex = gm.getPlayer1Hand().getCardsArray().size() - 1;
                     Log.d("game", "Index1, Size1: " + lastIndex + ", " + gm.getPlayer1Hand().arraySize());
@@ -471,30 +465,23 @@ public class GameActivity extends AppCompatActivity {
                 showContinueDialog(gm.getGameStatus());
             }
             else if(id == R.id.btnOk){
-                reply = "Plus 2";
                 updateRecyclerViews();
                 gm.showPlayingHand();
-                // gm.logDFunction();
-                gm.topIsPlus2();
+                gm.topIsPlus();
             }
             else if(id == R.id.btnBlue || id == R.id.btnRed || id == R.id.btnGreen || id == R.id.btnYellow){
-                reply = "";
                 switch (id){
                     case R.id.btnBlue:
-                        reply = "blue";
                         gm.changeColorOrPlusFour("blue", gm.getPileTop().getValue());
                         break;
                     case R.id.btnRed:
                         gm.changeColorOrPlusFour("red", gm.getPileTop().getValue());
-                        reply = "red";
                         break;
                     case R.id.btnGreen:
                         gm.changeColorOrPlusFour("green", gm.getPileTop().getValue());
-                        reply = "green";
                         break;
                     case R.id.btnYellow:
                         gm.changeColorOrPlusFour("yellow", gm.getPileTop().getValue());
-                        reply = "yellow";
                         break;
                 }
                 if(gm.getPileTop().getValueName().equals("Plus4")){
@@ -505,11 +492,6 @@ public class GameActivity extends AppCompatActivity {
                 gm.hideBothHands();
                 showContinueDialog(gm.getGameStatus());
             }
-            else{
-                reply = "Empty";
-            }
-            Toast.makeText(getApplicationContext(), reply, Toast.LENGTH_LONG).show();
-            // tvResult.setText(reply);
             dialog.dismiss();
         }
     }
@@ -594,6 +576,8 @@ public class GameActivity extends AppCompatActivity {
 
         CustomDialogClickListener dcl = new CustomDialogClickListener(dialog);
         btnContinue.setOnClickListener(dcl);
+
+        checkUnoImageClickable(gm.getPlayer1Hand(), gm.getPlayer2Hand());
 
         dialog.setCanceledOnTouchOutside(false);
         dialog.setCancelable(false);
@@ -680,13 +664,6 @@ public class GameActivity extends AppCompatActivity {
         dialog.show();
     }
 
-    public String getNameFromStatus(String str){
-        if(str.equals("Player1")){
-            return gm.getPlayer1Name();
-        }
-        return gm.getPlayer2Name();
-    }
-
     public void moveToEndScreen(){
         Intent intent = new Intent(this, EndActivity.class);
         startActivity(intent);
@@ -705,6 +682,12 @@ public class GameActivity extends AppCompatActivity {
     protected void onStop() {
         unregisterReceiver(mReceiver);
         super.onStop();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        unregisterReceiver(mReceiver);
     }
 
     private class MultiActionBroadcastReceiver extends BroadcastReceiver {
@@ -734,16 +717,9 @@ public class GameActivity extends AppCompatActivity {
         }
     }
 
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        unregisterReceiver(mReceiver);
-    }
-
-
+    // Handling the animation thread
     private class MyHandler extends Handler
     {
-
         @Override
         public void handleMessage(Message msg)
         {
@@ -753,8 +729,6 @@ public class GameActivity extends AppCompatActivity {
             int mode = data.getInt("mode");
             movingCard.setX(arr[0]);
             movingCard.setY(arr[1]);
-            // update the Timer TextView
-            // tvTimer.setText("" + count);
             if (counter == 30)
             {
                 movingCard.setVisibility(View.INVISIBLE);
@@ -764,20 +738,17 @@ public class GameActivity extends AppCompatActivity {
                 }
                 deckImg.setClickable(true);
                 rclvMyCards.setClickable(true);
-                // btnStart.setEnabled(true);
             }
         } // handleMessage(...)
 
     } // class MyHandler
 
-
-    public class MoveCardThread extends Thread
+    public class AnimationThread extends Thread
     {
         private int x, y;
         private int interval = 32; // "sleep" interval in milisec
         private int mode = 1; // 1 - To Pile | 2 - To Hand
-
-        public MoveCardThread(int mode)
+        public AnimationThread(int mode)
         {
             if(mode == 1){
                 this.x = movingCardX;
@@ -803,7 +774,6 @@ public class GameActivity extends AppCompatActivity {
             }
             while (counter <= 30)
             {
-                // Log.d("Pos", "run: X and Y pos (" + xPos + ", " + yPos + ")");
                 try
                 {
                     if(mode == 1){
@@ -826,13 +796,13 @@ public class GameActivity extends AppCompatActivity {
 
         private void sendCounter2Activity(int xPos, int yPos, int counter, int mode)
         {
-            Message msg = hndlr.obtainMessage();
+            Message msg = handler.obtainMessage();
             Bundle data = msg.getData();
             data.putInt("counter", counter);
             int[] arr = {xPos, yPos};
             data.putIntArray("arr", arr);
             data.putInt("mode", mode);
-            hndlr.sendMessage(msg);
+            handler.sendMessage(msg);
         }
     } // Class PrintCharThread
 

@@ -121,7 +121,6 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         btnSignUp.setOnClickListener(dcl);
         btnConfirm.setOnClickListener(dcl);
 
-        //
         initData();
 
         pref = getSharedPreferences(Globals.PrefName, 0); // 0 - for private mode

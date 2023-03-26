@@ -66,6 +66,7 @@ public class GameManager {
             players.get(player1Index).addWin();
             players.get(player2Index).addLose();
             unoUI.showWinDialog("Player1");
+
         }
         if(player2Hand.arraySize() == 0){
             players.get(player1Index).addPlayed();

@@ -6,25 +6,17 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.graphics.Bitmap;
-import android.media.Image;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.AdapterView;
-import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 
 public class RecordsActivity extends Activity
         implements AdapterView.OnItemClickListener, AdapterView.OnItemLongClickListener,
@@ -81,12 +73,13 @@ public class RecordsActivity extends Activity
             }
         }); */
 
-
-
         lvPlayers.setAdapter(adapter);
         lvPlayers.setOnItemClickListener(this);
         lvPlayers.setOnItemLongClickListener(this);
 
+        // Connects between this activity to the service (MediaPlayer service)
+        Intent intent = new Intent(this, MusicService.class);
+        bindService(intent, Globals.connection, Context.BIND_AUTO_CREATE);
     }
 
     @Override

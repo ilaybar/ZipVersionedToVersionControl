@@ -5,8 +5,10 @@ import static ilay.bar.uno.Utils2.handleMainMenu;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.app.Dialog;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.res.Configuration;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -16,11 +18,14 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
+import java.util.Locale;
+import java.util.Random;
 
 import ilay.bar.uno.View.GameActivity;
 
@@ -29,7 +34,9 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
     Intent intent;
     Button moveToGameActivity;
+    TextView tvTip;
     Spinner spinnerPlayers1, spinnerPlayers2;
+    ImageView cardImage;
 
     ArrayAdapter<Player> spinnerAdapter;
 
@@ -37,6 +44,12 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
     private SharedPreferences pref;
     private SharedPreferences.Editor editor;
+
+    private String[] unoTips = {
+            "When playing a Wild card, choose the color that will benefit you the most.",
+            "Be strategic when using Reverse cards to prevent opponents from going out before you do.",
+            "Keep track of played cards to predict opponents' hands and make better decisions."
+    };
 
     private void initData()
     {
@@ -56,7 +69,34 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        // Sets the default language to english (left to right layout)
+        Locale.setDefault(Locale.ENGLISH);
+        Configuration config = new Configuration();
+        config.locale = Locale.ENGLISH;
+        getBaseContext().getResources().updateConfiguration(config,
+                getBaseContext().getResources().getDisplayMetrics());
+
         moveToGameActivity = findViewById(R.id.btnMoveToGameActivity);
+
+        String[] tips = {"When playing a Wild card, it's important to choose the color that will benefit you the most. Consider the cards in your hand and the cards on the table before making your decision.",
+                "Be strategic when using Reverse cards. Playing a Reverse card can change the direction of play, but it can also prevent your opponents from going out before you do.",
+                "Keep track of the cards that have been played to improve your chances of winning. This can help you predict which cards your opponents may have and make better decisions about which cards to play."};
+        tvTip = findViewById(R.id.tvTip);
+        tvTip.setText("Tip: " + getRandomTip());
+
+        // Connects between this activity to the service (MediaPlayer service)
+        Intent intent = new Intent(this, MusicService.class);
+        bindService(intent, Globals.connection, Context.BIND_AUTO_CREATE);
+    }
+
+    private String getRandomTip() {
+        // Generate a random number between 0 and the length of the unoTips array
+        Random random = new Random();
+        int randomIndex = random.nextInt(unoTips.length);
+
+        // Return the tip at the random index
+        return unoTips[randomIndex];
     }
 
     private class CustomDialogClickListener implements View.OnClickListener

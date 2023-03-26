@@ -23,7 +23,7 @@
         android:text="Game Instructions"
         android:textAlignment="center"
         android:textColor="@color/white"
-        android:textSize="30sp" />
+        android:textSize="45sp" />
 
     <ScrollView
         android:layout_width="match_parent"
@@ -36,13 +36,59 @@
             android:orientation="vertical">
 
             <TextView
-                android:id="@+id/tvInstructions"
+                android:id="@+id/title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textColor="@color/white"
+                android:fontFamily="@font/bubble_font"
+                android:text="UNO Instructions"
+                android:textSize="30sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/gameplay_title"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:fontFamily="@font/bubble_font"
-                android:text="בתחילת המשחק כל שחקן מקבל 7 קלפים מהקופה, ושמים קלף אחד באמצע (יוצרים ערימה). הקלפים האפשריים לקבל הם קלפים מ 0 – 9 בצבעים: כחול, אדום, ירוק וצהוב, או קלפים מיוחדים כמו: משנה כיוון, משנה צבע, עצור (דלג), 2+ או 4+. מטרת כל שחקן היא להפטר משבעת הקלפים שנמצאים בידיו לפני כל שאר השחקנים. נפטרים מקלפים בדרך הבאה: אם מונח קלף 7 בצבע כחול בערמה, מי שתורו יכול להניח או קלף כלשהו בצבע כחול או קלף עם מספר 7 שלא באותו צבע כמו הקלף. אם אין לו קלף, הוא לוקח מהקופה קלף אחד, אם הקלף מתאים לערמה, השחקן יכול לבחור אם להשתמש בו ישירות או לשמור אותו ביד. חוק זה נכון גם לגבי קלפים כמו עצור, משנה כיוון ומשנה צבע שאפשר לשים חוץ משני מקרים: אם שחקן מניח 2+ או 4+, אי אפשר להניח עליהם שום קלף שלהם (כולל 2+ ו 4+) והשחקן צריך לעבוד לפי החוקים. קלף 2+ אפשר להניח בתורך לפי הצבע שלו כמו החוק מקודם, אם יש לך 2+ אדום אז אפשר להניח אותו רק כאשר הקלף שבערמה אדום. כאשר הנחת אותו, השחקן שאחריך צריך לקחת 2 קלפים מהקופה ולא לעשות תור חוץ מזה. קלף 4+ (קלף מיוחד): מותר לשחקן להשתמש בו או בדרך חוקית או לא חוקית. בדרך חוקית: אפשר לשחק את הקלף הזה רק כאשר אין לך קלף ביד שמותאם לקלף שכעת בערמה. בדרך לא חוקית: שחקן יכול לשחק את הקלף גם אם יש לו קלף שמתאים לערמה אך אם מישהו חושד בו הוא יכול לעשות Challenge, כאשר הוא עושה זאת אם השחקן שהשתמש ב 4+ עשה זאת בדרך חוקית, השחקן שאתגר אותו לוקח 6 קלפים מהקופה. אם הוא לא עשה את זה בדרך חוקית אז השחקן שהשתמש ב 4+ לוקח 4 קלפים מהקופה. במקרה של משחק uno בתוכנה, הקוד יבדוק אם הוא שיחק באופן חוקי או לא, עבור השחקן שאתגר אותו, ולפיכך יקחו קלפים מהקופה (זה שהניח את 4+ או זה שאתגר אותו). חוקי התחלת משחק אם הקלף הראשון שיצא מהקופה אל הערמה הוא קלף רגיל (קלף עם מספר) ולא קלף כמו: עצור, שנה כיוון, שנה צבע, 2+, 4+. חוקים עבור קלפים מיוחדים בתחילת המשחק: עצור (דלג): אם קלף עצור יוצא בהתחלה אז השחקן שהיה אמור להתחיל לא יתחיל אלא השחקן השני יתחיל. שנה כיוון: קלף זה ישנה את הסדר של המשחק כך שהראשון שיתחיל הוא השחקן השני (בעקרון בתחילת המשחק זהה לקלף עצור).  שנה צבע: השחקן השני שמשחק יבחר צבע לפני שהשחקן הראשון ישחק ולפי צבע זה יתחיל המשחק. 2+: השחקן הראשון צריך לקחת 2 קלפים מהקופה ולאחר מכן מסתיים תורו. 4+: השחקן השני מתחיל בכך שהוא בוחר צבע ואז משחק קלף ואחריו תורו של השחקן הראשון. חוק ה Uno: כאשר שחקן עומד להיות עם קלף אחד בסוף התור הוא צריך ללחוץ על כפתור ה “Uno” לפני שישחק. אם שחקן נמצא עם קלף אחד לאחר התור שלו והוא לא אמר Uno, השחקן השני יכול ללחוץ על הכפתור Uno ולגרום לכך שהשחקן שלא אמר יצטרך לקחת 4 קלפים מהקופה."
-                android:textAlignment="center"
-                android:textColor="@color/white" />
+                android:textColor="@color/white"
+                android:paddingTop="16dp"
+                android:text="Gameplay"
+                android:textSize="26sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/gameplay_content"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/bubble_font"
+                android:textColor="@color/white"
+                android:lineSpacingExtra="8dp"
+                android:paddingTop="8dp"
+                android:text="UNO is played with a deck of 108 cards consisting of four colors: red, green, blue, and yellow.\n\nThe deck is shuffled and each player is dealt 7 cards.\n\nThe top card of the deck is turned over to start a discard pile.\n\nThe player to the left of the dealer goes first and must match the top card of the discard pile either by color, number, or symbol (such as a draw two or reverse card).\n\nIf a player does not have a playable card, they must draw a card from the deck. If this card can be played, they may play it, otherwise their turn ends.\n\nThe first player to get rid of all their cards is the winner."
+                android:textSize="20sp" />
+
+            <TextView
+                android:id="@+id/objective_title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/bubble_font"
+                android:textColor="@color/white"
+                android:text="Objective"
+                android:textSize="26sp"
+                android:textStyle="bold"
+                android:paddingTop="16dp" />
+
+            <TextView
+                android:id="@+id/objective_content"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/bubble_font"
+                android:textColor="@color/white"
+                android:text="The objective of UNO is to be the first player to get rid of all their cards.\n\nPlayers do this by matching the top card of the discard pile with a card of the same color, number, or symbol.\n\nThere are also special cards that can be played to make the game more challenging, such as draw two cards (which forces the next player to draw two cards from the deck), skip cards (which skips the next player's turn), and reverse cards (which changes the direction of play)."
+                android:textSize="20sp"
+                android:lineSpacingExtra="8dp"
+                android:paddingTop="8dp" />
+
         </LinearLayout>
     </ScrollView>
 

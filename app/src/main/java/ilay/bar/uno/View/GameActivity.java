@@ -17,6 +17,7 @@ import android.os.BatteryManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.os.Vibrator;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -35,7 +36,7 @@ import ilay.bar.uno.Controller.GameManager;
 import ilay.bar.uno.EndActivity;
 import ilay.bar.uno.Globals;
 import ilay.bar.uno.Model.Card;
-import ilay.bar.uno.Model.Hand;
+import ilay.bar.uno.MusicService;
 import ilay.bar.uno.Player;
 import ilay.bar.uno.PrefsUtils;
 import ilay.bar.uno.R;
@@ -55,6 +56,8 @@ public class GameActivity extends AppCompatActivity {
     private AnimationThread movingCardThread; // Thread that moves cards (To pile / From deck)
     int movingCardX, movingCardY, pileImgX, pileImgY;
     int pos; // Pos in deck of card used in the animation
+    boolean canUse; // Connects between Deck Click to Card Animation
+    String nextPlayer; // Connects between Deck Click to Card Animation
 
     // RecyclerView
     TextView gameStatus;
@@ -138,6 +141,10 @@ public class GameActivity extends AppCompatActivity {
         handler = new MyHandler(); // Handler
 
         mReceiver = new MultiActionBroadcastReceiver(); // Multi Action Broadcast Receiver
+
+        // Connects between this activity to the service (MediaPlayer service)
+        Intent intent = new Intent(this, MusicService.class);
+        bindService(intent, Globals.connection, Context.BIND_AUTO_CREATE);
     }
 
     // Initialize cords of movingCard and pileImg for animation
@@ -174,18 +181,6 @@ public class GameActivity extends AppCompatActivity {
     // Updates the top card image
     public void changePileImg(Card card){
         pileImg.setImageResource(card.calcFaceDrawableId(this));
-    }
-
-    // Can or Cannot use the uno button
-    public void checkUnoImageClickable(Hand hand1, Hand hand2){
-        if(hand1.arraySize() <= 2 || hand2.arraySize() <= 2){
-            unoImage.setClickable(true);
-            Toast.makeText(getApplicationContext(), "Clickable, Can Use Uno", Toast.LENGTH_LONG).show();
-        }
-        else{
-            unoImage.setClickable(false);
-            Toast.makeText(getApplicationContext(), "Not Clickable, Can't Use Uno", Toast.LENGTH_LONG).show();
-        }
     }
 
     // Provides the player's name from a string
@@ -280,10 +275,10 @@ public class GameActivity extends AppCompatActivity {
 
     // Player took a card/s
     public void deckClick(View view){
-        boolean flag = false;
+        canUse = false;
         Card card = gm.getPileTop();
         String str = card.getValueName();
-        String nextPlayer = "";
+        nextPlayer = "";
         int mode = 1;
         if(str.equals("Plus2") || str.equals("Plus4") || str.equals("Plus6")){
             str = "Plus";
@@ -303,13 +298,13 @@ public class GameActivity extends AppCompatActivity {
                 if(gm.getGameStatus().equals("Player1") && gm.getDeckSize() > 0){
                     if(!gm.canUseCards()){
                         gm.takeCardFromDeck(gm.getPlayer1Hand(), mode);
-                        flag = false;
+                        canUse = false;
                     }
                     else{
                         gm.takeCardFromDeck(gm.getPlayer1Hand(), 1); //1
                         Card card1 = gm.getPlayer1Hand().getCardsArray().get(gm.getPlayer1Hand().arraySize() - 1);
                         if(gm.isCardUsable(card1)){
-                            flag = true;
+                            canUse = true;
                         }
                     }
                     nextPlayer = "Player2";
@@ -317,13 +312,13 @@ public class GameActivity extends AppCompatActivity {
                 else{
                     if(!gm.canUseCards()){
                         gm.takeCardFromDeck(gm.getPlayer2Hand(), mode);
-                        flag = false;
+                        canUse = false;
                     }
                     else{
                         gm.takeCardFromDeck(gm.getPlayer2Hand(), 1); //1
                         Card card1 = gm.getPlayer2Hand().getCardsArray().get(gm.getPlayer2Hand().arraySize() - 1);
                         if(gm.isCardUsable(card1)){
-                            flag = true;
+                            canUse = true;
                         }
                     }
                     nextPlayer = "Player1";
@@ -336,7 +331,7 @@ public class GameActivity extends AppCompatActivity {
                     gm.takeCardFromDeck(gm.getPlayer1Hand(), 1); //1
                     Card card1 = gm.getPlayer1Hand().getCardsArray().get(gm.getPlayer1Hand().arraySize() - 1);
                     if(gm.isCardUsable(card1)){
-                        flag = true;
+                        canUse = true;
                     }
                     nextPlayer = "Player2";
                 }
@@ -344,7 +339,7 @@ public class GameActivity extends AppCompatActivity {
                     gm.takeCardFromDeck(gm.getPlayer2Hand(), 1); //1
                     Card card1 = gm.getPlayer2Hand().getCardsArray().get(gm.getPlayer2Hand().arraySize() - 1);
                     if(gm.isCardUsable(card1)){
-                        flag = true;
+                        canUse = true;
                     }
                     nextPlayer = "Player1";
                 }
@@ -358,30 +353,6 @@ public class GameActivity extends AppCompatActivity {
         movingCard.setVisibility(View.VISIBLE);
         movingCardThread = new AnimationThread(2);
         movingCardThread.start();
-
-        // Move to next turn
-        gm.setGameStatus(nextPlayer);
-        gm.updateGameStatusText();
-
-        // Can play the player's card he got from the deck
-        Card cardToBePlayed;
-        if(flag && gm.getGameStatus().equals("Player1")){
-            Card cardFromHand = gm.getPlayer2Hand().getCardsArray().get(gm.getPlayer2Hand().arraySize() - 1);
-            cardToBePlayed = new Card(cardFromHand.getColor(), cardFromHand.getValue(), true);
-            showCardTakeDialog(cardToBePlayed);
-        }
-        else if(flag && gm.getGameStatus().equals("Player2")){
-            Card cardFromHand = gm.getPlayer1Hand().getCardsArray().get(gm.getPlayer1Hand().arraySize() - 1);
-            cardToBePlayed = new Card(cardFromHand.getColor(), cardFromHand.getValue(), true);
-            showCardTakeDialog(cardToBePlayed);
-        }
-        else{
-            showContinueDialog(gm.getGameStatus());
-        }
-
-        // Move to next turn
-        gm.hideBothHands();
-        gm.updateRecyclerViews();
     }
 
     // Game Menu
@@ -577,8 +548,6 @@ public class GameActivity extends AppCompatActivity {
         CustomDialogClickListener dcl = new CustomDialogClickListener(dialog);
         btnContinue.setOnClickListener(dcl);
 
-        checkUnoImageClickable(gm.getPlayer1Hand(), gm.getPlayer2Hand());
-
         dialog.setCanceledOnTouchOutside(false);
         dialog.setCancelable(false);
         dialog.show();
@@ -659,6 +628,11 @@ public class GameActivity extends AppCompatActivity {
         CustomDialogClickListener dcl = new CustomDialogClickListener(dialog);
         btnEndScreen.setOnClickListener(dcl);
 
+        Vibrator vbr;
+        vbr = (Vibrator) this.getSystemService(Context.VIBRATOR_SERVICE);
+        Toast.makeText(this, "vibrate", Toast.LENGTH_LONG).show();
+        vbr.vibrate(1000);
+
         dialog.setCanceledOnTouchOutside(false);
         dialog.setCancelable(false);
         dialog.show();
@@ -735,6 +709,29 @@ public class GameActivity extends AppCompatActivity {
                 setCords();
                 if(mode == 1){
                     gm.useCard(pos);
+                }
+                else{
+                    // Move to next turn
+                    gm.setGameStatus(nextPlayer);
+                    gm.updateGameStatusText();
+                    // Can play the player's card he got from the deck
+                    Card cardToBePlayed;
+                    if(canUse && gm.getGameStatus().equals("Player1")){
+                        Card cardFromHand = gm.getPlayer2Hand().getCardsArray().get(gm.getPlayer2Hand().arraySize() - 1);
+                        cardToBePlayed = new Card(cardFromHand.getColor(), cardFromHand.getValue(), true);
+                        showCardTakeDialog(cardToBePlayed);
+                    }
+                    else if(canUse && gm.getGameStatus().equals("Player2")){
+                        Card cardFromHand = gm.getPlayer1Hand().getCardsArray().get(gm.getPlayer1Hand().arraySize() - 1);
+                        cardToBePlayed = new Card(cardFromHand.getColor(), cardFromHand.getValue(), true);
+                        showCardTakeDialog(cardToBePlayed);
+                    }
+                    else{
+                        showContinueDialog(gm.getGameStatus());
+                    }
+                    // Move to next turn
+                    gm.hideBothHands();
+                    gm.updateRecyclerViews();
                 }
                 deckImg.setClickable(true);
                 rclvMyCards.setClickable(true);

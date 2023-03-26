@@ -4,6 +4,7 @@ import static ilay.bar.uno.Utils2.handleMainMenu;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.Menu;
@@ -17,10 +18,17 @@ public class EndActivity extends AppCompatActivity {
 
     Intent intent;
 
+    private MyServiceConnection connection; // MediaPlayer Service
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_end);
+
+        // Connects between this activity to the service (MediaPlayer service)
+        Intent intent = new Intent(this, MusicService.class);
+        connection = new MyServiceConnection();
+        bindService(intent, connection, Context.BIND_AUTO_CREATE);
     }
 
     @Override
